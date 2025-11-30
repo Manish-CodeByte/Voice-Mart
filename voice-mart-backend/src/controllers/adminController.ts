@@ -198,11 +198,22 @@ export const getAllUsers = async (req: AuthRequest, res: Response) => {
 
     const snapshot = await db.collection('users').get();
 
-    const users = snapshot.docs.map((doc: any) => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-    }))
+    const users = snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      // Handle different createdAt formats
+      let createdAt = data.createdAt;
+      if (createdAt?.toDate) {
+        createdAt = createdAt.toDate();
+      } else if (typeof createdAt === 'string') {
+        createdAt = new Date(createdAt);
+      }
+
+      return {
+        id: doc.id,
+        ...data,
+        createdAt,
+      };
+    })
     .sort((a: any, b: any) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;

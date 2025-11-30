@@ -27,7 +27,11 @@ export default function AdminUsersPage() {
       ]);
 
       if (usersRes.success && usersRes.data) {
+        console.log('👥 Users data:', usersRes.data);
+        console.log('👥 First user:', usersRes.data[0]);
         setUsers(usersRes.data as any[]);
+      } else {
+        console.log('❌ Users response failed:', usersRes);
       }
 
       if (statsRes.success && statsRes.data) {
