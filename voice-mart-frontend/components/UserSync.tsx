@@ -1,21 +1,22 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
+import { useUser, useAuth } from '@clerk/nextjs';
 import { useEffect } from 'react';
 
 export default function UserSync() {
   const { user, isSignedIn } = useUser();
+  const { getToken } = useAuth();
 
   useEffect(() => {
     const syncUser = async () => {
       if (isSignedIn && user) {
         try {
+          const token = await getToken();
           const response = await fetch('http://localhost:5001/api/auth/sync', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              // Add Authorization header if you want to verify the token on backend
-              // 'Authorization': `Bearer ${await getToken()}` 
+              'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
               uid: user.id,
@@ -27,6 +28,8 @@ export default function UserSync() {
 
           if (!response.ok) {
             console.error('Failed to sync user with backend');
+          } else {
+            console.log('✅ User synced with backend');
           }
         } catch (error) {
           console.error('Error syncing user:', error);
@@ -35,7 +38,7 @@ export default function UserSync() {
     };
 
     syncUser();
-  }, [isSignedIn, user]);
+  }, [isSignedIn, user, getToken]);
 
   return null; // This component doesn't render anything
 }
