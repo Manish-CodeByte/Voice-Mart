@@ -1,11 +1,15 @@
+'use client';
+
 import Link from 'next/link';
 import { SignInButton, SignedIn, SignedOut } from '@clerk/nextjs';
 import { ShoppingCart } from 'lucide-react';
 import DarkModeToggle from './DarkModeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
 import UserMenu from './UserMenu';
+import { useCart } from '@/contexts/CartContext';
 
 export default function Header() {
+    const { totalItems } = useCart();
     return (
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -33,9 +37,11 @@ export default function Header() {
                             className="relative p-2.5 rounded-lg hover:bg-accent transition-colors group"
                         >
                             <ShoppingCart className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                            <span className="absolute -top-0.5 -right-0.5 h-5 w-5 bg-primary text-[10px] font-bold text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/30">
-                                0
-                            </span>
+                            {totalItems > 0 && (
+                                <span className="absolute -top-0.5 -right-0.5 h-5 w-5 bg-primary text-[10px] font-bold text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/30">
+                                    {totalItems > 9 ? '9+' : totalItems}
+                                </span>
+                            )}
                         </Link>
                         
                         <div className="ml-2">

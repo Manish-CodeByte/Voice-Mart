@@ -1,13 +1,41 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
+import { useUser, useAuth } from '@clerk/nextjs';
 import { Package, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { redirect } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
 
 export default function OrdersPage() {
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!isLoaded) {
+  useEffect(() => {
+    if (isLoaded && user) {
+      fetchOrders();
+    }
+  }, [isLoaded, user]);
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const response = await api.getOrders(token);
+      if (response.success && response.data) {
+        setOrders(response.data as any[]);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isLoaded || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -18,34 +46,6 @@ export default function OrdersPage() {
   if (!user) {
     redirect('/');
   }
-
-  // Mock orders data
-  const orders = [
-    {
-      id: 'ORD-2024-001',
-      date: '2024-11-28',
-      status: 'delivered',
-      total: 2499,
-      items: 2,
-      product: 'Wireless Headphones',
-    },
-    {
-      id: 'ORD-2024-002',
-      date: '2024-11-25',
-      status: 'processing',
-      total: 1299,
-      items: 1,
-      product: 'Smart Watch',
-    },
-    {
-      id: 'ORD-2024-003',
-      date: '2024-11-20',
-      status: 'cancelled',
-      total: 899,
-      items: 1,
-      product: 'Phone Case',
-    },
-  ];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -73,6 +73,10 @@ export default function OrdersPage() {
     }
   };
 
+  const totalOrders = orders.length;
+  const deliveredCount = orders.filter(o => o.status === 'delivered').length;
+  const processingCount = orders.filter(o => o.status === 'processing').length;
+
   return (
     <div className="min-h-screen pt-24 pb-16 px-6">
       <div className="max-w-6xl mx-auto">
@@ -90,7 +94,7 @@ export default function OrdersPage() {
                 <Package className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">3</p>
+                <p className="text-2xl font-bold">{totalOrders}</p>
                 <p className="text-sm text-muted-foreground">Total Orders</p>
               </div>
             </div>
@@ -102,7 +106,7 @@ export default function OrdersPage() {
                 <CheckCircle className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">1</p>
+                <p className="text-2xl font-bold">{deliveredCount}</p>
                 <p className="text-sm text-muted-foreground">Delivered</p>
               </div>
             </div>
@@ -114,7 +118,7 @@ export default function OrdersPage() {
                 <Clock className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">1</p>
+                <p className="text-2xl font-bold">{processingCount}</p>
                 <p className="text-sm text-muted-foreground">Processing</p>
               </div>
             </div>
@@ -122,53 +126,7 @@ export default function OrdersPage() {
         </div>
 
         {/* Orders List */}
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className="p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/30 hover:shadow-xl transition-all"
-            >
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-primary/10 text-primary">
-                    <Package className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-1">{order.product}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">Order #{order.id}</p>
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="text-muted-foreground">
-                        {new Date(order.date).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })}
-                      </span>
-                      <span className="text-muted-foreground">{order.items} item(s)</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="font-bold text-xl mb-2">₹{order.total.toLocaleString()}</p>
-                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border font-semibold text-sm ${getStatusColor(order.status)}`}>
-                      {getStatusIcon(order.status)}
-                      <span className="capitalize">{order.status}</span>
-                    </div>
-                  </div>
-
-                  <button className="p-3 rounded-lg border-2 border-border hover:border-primary/30 hover:bg-accent transition-all">
-                    <Eye className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Empty State (if no orders) */}
-        {orders.length === 0 && (
+        {orders.length === 0 ? (
           <div className="text-center py-16">
             <div className="inline-flex p-6 rounded-2xl bg-accent mb-4">
               <Package className="h-12 w-12 text-muted-foreground" />
@@ -178,6 +136,51 @@ export default function OrdersPage() {
             <button className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all">
               Browse Products
             </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {orders.map((order) => (
+              <div
+                key={order.id}
+                className="p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/30 hover:shadow-xl transition-all"
+              >
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                      <Package className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg mb-1">Order #{order.id.substring(0, 8)}</h3>
+                      <p className="text-sm text-muted-foreground mb-2">
+
+                        {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric', 
+                          year: 'numeric' 
+                        })}
+                      </p>
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="text-muted-foreground">{order.totalItems} item(s)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="font-bold text-xl mb-2">₹{order.totalPrice.toLocaleString()}</p>
+                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border font-semibold text-sm ${getStatusColor(order.status)}`}>
+                        {getStatusIcon(order.status)}
+                        <span className="capitalize">{order.status}</span>
+                      </div>
+                    </div>
+
+                    <button className="p-3 rounded-lg border-2 border-border hover:border-primary/30 hover:bg-accent transition-all">
+                      <Eye className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

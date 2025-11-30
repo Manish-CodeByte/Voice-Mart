@@ -5,6 +5,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import UserSync from "@/components/UserSync";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { CartProvider } from "@/contexts/CartContext";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] });
 
@@ -28,11 +29,13 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <UserSync />
-            <Header />
-            <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
-              {children}
-            </main>
+            <CartProvider>
+              <UserSync />
+              <Header />
+              <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
+                {children}
+              </main>
+            </CartProvider>
           </ThemeProvider>
         </body>
       </html>

@@ -11,6 +11,10 @@ import { fileURLToPath } from 'url';
 // Import custom modules
 import logger from './utils/logger.js';
 import voiceRoutes from './routes/voice.js';
+import productsRoutes from './routes/products.js';
+import cartRoutes from './routes/cart.js';
+import wishlistRoutes from './routes/wishlist.js';
+import ordersRoutes from './routes/orders.js';
 import { authMiddleware } from './middleware/auth.js';
 
 // Load environment variables (already loaded at top)
@@ -81,6 +85,10 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // API Routes
 app.use('/api', voiceRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/orders', ordersRoutes);
 // app.use('/api/auth', authRoutes); // Clerk handles auth on frontend mostly, but we can add webhook handlers here later
 
 // 404 handler
