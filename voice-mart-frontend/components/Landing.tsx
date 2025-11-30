@@ -26,13 +26,13 @@ const Landing = () => {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/20 bg-primary/5 text-sm font-medium">
               <Sparkles className="h-4 w-4 text-primary" />
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent font-semibold">Powered by Gemini AI</span>
+              <span className="bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent font-semibold">Powered with ❤️ to To Serve</span>
             </div>
 
             {/* Heading */}
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
               Shop with your
-              <span className="block mt-2 bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
+              <span className="block mt-2 bg-linear-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
                 Voice & Vision
               </span>
             </h1>
@@ -46,7 +46,7 @@ const Landing = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <Link
                 href="/shop"
-                className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-secondary text-primary-foreground font-semibold hover:shadow-xl hover:shadow-primary/20 transition-all"
+                className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-linear-to-r from-primary to-secondary text-primary-foreground font-semibold hover:shadow-xl hover:shadow-primary/20 transition-all"
               >
                 Start Shopping
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -145,7 +145,7 @@ const Landing = () => {
                 key={idx}
                 className="flex gap-6 items-start p-6 rounded-2xl bg-card border border-border hover:border-primary/20 hover:shadow-lg transition-all"
               >
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary text-primary-foreground flex items-center justify-center font-bold shadow-lg shadow-primary/20">
+                <div className="shrink-0 w-12 h-12 rounded-xl bg-linear-to-br from-primary to-secondary text-primary-foreground flex items-center justify-center font-bold shadow-lg shadow-primary/20">
                   {item.icon}
                 </div>
                 <div>
@@ -170,7 +170,7 @@ const Landing = () => {
               { value: '24/7', label: 'Support' },
             ].map((stat, idx) => (
               <div key={idx} className="text-center">
-                <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">{stat.value}</div>
+                <div className="text-4xl font-bold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">{stat.value}</div>
                 <div className="text-sm text-muted-foreground uppercase tracking-wider font-medium">{stat.label}</div>
               </div>
             ))}
@@ -180,7 +180,7 @@ const Landing = () => {
 
       {/* Final CTA */}
       <section className="py-24 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5 -z-10" />
+        <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-secondary/5 -z-10" />
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold mb-6">Ready to get started?</h2>
           <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
@@ -188,7 +188,7 @@ const Landing = () => {
           </p>
           <Link
             href="/sign-up"
-            className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-gradient-to-r from-primary to-secondary text-primary-foreground font-semibold hover:shadow-xl hover:shadow-primary/20 transition-all"
+            className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-linear-to-r from-primary to-secondary text-primary-foreground font-semibold hover:shadow-xl hover:shadow-primary/20 transition-all"
           >
             Get Started Free
             <ArrowRight className="h-4 w-4" />
@@ -201,7 +201,7 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2 font-semibold">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20">
+              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20">
                 <svg className="w-5 h-5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                 </svg>
