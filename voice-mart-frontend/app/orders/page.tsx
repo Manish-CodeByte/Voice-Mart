@@ -5,6 +5,7 @@ import { Package, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 export default function OrdersPage() {
   const { user, isLoaded } = useUser();
@@ -80,6 +81,8 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen pt-24 pb-16 px-6">
       <div className="max-w-6xl mx-auto">
+        <Breadcrumbs />
+        
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">My Orders</h1>

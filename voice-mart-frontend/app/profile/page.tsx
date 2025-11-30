@@ -1,120 +1,213 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
-import { User, Mail, Calendar, Shield, Edit } from 'lucide-react';
-import { redirect } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs';
+import { MapPin, Plus, Trash2, Edit2, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
+import Breadcrumbs from '@/components/Breadcrumbs';
+
+interface Address {
+  id: string;
+  fullName: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  isDefault: boolean;
+}
 
 export default function ProfilePage() {
-  const { user, isLoaded } = useUser();
+  const { user } = useUser();
+  const { getToken } = useAuth();
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  useEffect(() => {
+    loadAddresses();
+  }, []);
 
-  if (!user) {
-    redirect('/');
-  }
+  const loadAddresses = async () => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const response = await api.getAddresses(token);
+      if (response.success && response.data) {
+        setAddresses(response.data as Address[]);
+      }
+    } catch (error) {
+      console.error('Error loading addresses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAddress = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this address?')) return;
+
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const response = await api.deleteAddress(id, token);
+      if (response.success) {
+        setAddresses(addresses.filter(addr => addr.id !== id));
+      }
+    } catch (error) {
+      console.error('Error deleting address:', error);
+      alert('Failed to delete address');
+    }
+  };
+
+  const handleSetDefault = async (id: string) => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const response = await api.setDefaultAddress(id, token);
+      if (response.success) {
+        // Update local state
+        setAddresses(addresses.map(addr => ({
+          ...addr,
+          isDefault: addr.id === id,
+        })));
+      }
+    } catch (error) {
+      console.error('Error setting default address:', error);
+      alert('Failed to set default address');
+    }
+  };
 
   return (
     <div className="min-h-screen pt-24 pb-16 px-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">My Profile</h1>
-          <p className="text-muted-foreground">Manage your account information</p>
-        </div>
+      <div className="max-w-5xl mx-auto">
+        <Breadcrumbs />
+        
+        <h1 className="text-4xl font-bold mb-8">My Profile</h1>
 
-        {/* Profile Card */}
-        <div className="bg-card border-2 border-border rounded-2xl p-8 mb-6">
-          <div className="flex items-start gap-6 mb-8">
-            {/* Avatar */}
-            <div className="relative">
-              {user.imageUrl ? (
-                <img
-                  src={user.imageUrl}
-                  alt={user.fullName || 'User'}
-                  className="w-24 h-24 rounded-2xl object-cover ring-4 ring-primary/20"
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-2xl bg-linear-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-3xl ring-4 ring-primary/20">
-                  {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
-                </div>
-              )}
-              <div className="absolute -bottom-2 -right-2 p-2 bg-primary text-primary-foreground rounded-xl shadow-lg cursor-pointer hover:bg-primary/90 transition-colors">
-                <Edit className="h-4 w-4" />
-              </div>
+        {/* User Info Card */}
+        <div className="p-6 rounded-2xl border-2 border-border bg-card mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-3xl font-bold text-primary">
+                {user?.fullName?.charAt(0) || user?.emailAddresses[0]?.emailAddress.charAt(0)}
+              </span>
             </div>
-
-            {/* Info */}
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold mb-1">{user.fullName || 'User'}</h2>
-              <p className="text-muted-foreground mb-4">{user.emailAddresses[0]?.emailAddress}</p>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold">
-                <Shield className="h-3 w-3" />
-                Verified Account
-              </div>
-            </div>
-          </div>
-
-          {/* Details Grid */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="p-4 rounded-xl border border-border bg-accent/50">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                  <User className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">Full Name</span>
-              </div>
-              <p className="font-semibold ml-11">{user.fullName || 'Not set'}</p>
-            </div>
-
-            <div className="p-4 rounded-xl border border-border bg-accent/50">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                  <Mail className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">Email Address</span>
-              </div>
-              <p className="font-semibold ml-11 truncate">{user.emailAddresses[0]?.emailAddress}</p>
-            </div>
-
-            <div className="p-4 rounded-xl border border-border bg-accent/50">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                  <Calendar className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">Member Since</span>
-              </div>
-              <p className="font-semibold ml-11">
-                {new Date(user.createdAt!).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl border border-border bg-accent/50">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                  <Shield className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">Account Status</span>
-              </div>
-              <p className="font-semibold ml-11 text-green-600 dark:text-green-400">Active</p>
+            <div>
+              <h2 className="text-2xl font-bold">{user?.fullName || 'User'}</h2>
+              <p className="text-muted-foreground">{user?.emailAddresses[0]?.emailAddress}</p>
             </div>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <button className="p-4 rounded-xl border-2 border-border bg-card hover:border-primary/30 hover:shadow-lg transition-all text-left">
-            <h3 className="font-semibold mb-1">Update Profile</h3>
-            <p className="text-sm text-muted-foreground">Edit your personal information</p>
+        {/* Saved Addresses Section */}
+        <div className="p-6 rounded-2xl border-2 border-border bg-card">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <MapPin className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl font-bold">Saved Addresses</h2>
+            </div>
+            <button
+              onClick={() => window.location.href = '/checkout'}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all"
+            >
+              <Plus className="h-4 w-4" />
+              Add Address
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            </div>
+          ) : addresses.length === 0 ? (
+            <div className="text-center py-12">
+              <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground mb-4">No saved addresses yet</p>
+              <button
+                onClick={() => window.location.href = '/checkout'}
+                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
+              >
+                Add Your First Address
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {addresses.map((address) => (
+                <div
+                  key={address.id}
+                  className="p-4 rounded-xl border-2 border-border hover:border-primary/30 transition-all"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-bold text-lg">{address.fullName}</h3>
+                        {address.isDefault && (
+                          <span className="px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            DEFAULT
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground mb-1">
+                        {address.address}
+                      </p>
+                      <p className="text-muted-foreground mb-1">
+                        {address.city}, {address.state} - {address.pincode}
+                      </p>
+                      <p className="text-muted-foreground">
+                        Phone: {address.phone}
+                      </p>
+
+                      <div className="flex items-center gap-3 mt-3">
+                        {!address.isDefault && (
+                          <button
+                            onClick={() => handleSetDefault(address.id)}
+                            className="text-sm text-primary hover:underline font-semibold"
+                          >
+                            Set as Default
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDeleteAddress(address.id)}
+                          className="text-sm text-destructive hover:underline font-semibold flex items-center gap-1"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Quick Links */}
+        <div className="grid md:grid-cols-3 gap-4 mt-6">
+          <button
+            onClick={() => window.location.href = '/orders'}
+            className="p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/30 transition-all text-left"
+          >
+            <h3 className="font-bold text-lg mb-2">My Orders</h3>
+            <p className="text-sm text-muted-foreground">View your order history</p>
           </button>
-          <button className="p-4 rounded-xl border-2 border-border bg-card hover:border-primary/30 hover:shadow-lg transition-all text-left">
-            <h3 className="font-semibold mb-1">Change Password</h3>
-            <p className="text-sm text-muted-foreground">Update your security credentials</p>
+          <button
+            onClick={() => window.location.href = '/wishlist'}
+            className="p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/30 transition-all text-left"
+          >
+            <h3 className="font-bold text-lg mb-2">Wishlist</h3>
+            <p className="text-sm text-muted-foreground">Your saved items</p>
+          </button>
+          <button
+            onClick={() => window.location.href = '/settings'}
+            className="p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/30 transition-all text-left"
+          >
+            <h3 className="font-bold text-lg mb-2">Settings</h3>
+            <p className="text-sm text-muted-foreground">Manage preferences</p>
           </button>
         </div>
       </div>

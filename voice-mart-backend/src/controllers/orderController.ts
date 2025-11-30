@@ -7,7 +7,8 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.auth?.userId;
     if (!userId) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
     }
 
     const order = await orderService.createOrder(userId, req.body);
@@ -21,15 +22,20 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
 export const getOrders = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.auth?.userId;
+    logger.info(`🔍 DEBUG - Getting orders for userId: ${userId}`);
+    
     if (!userId) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
     }
 
     const orders = await orderService.getUserOrders(userId);
+    logger.info(`✅ DEBUG - Found ${orders.length} orders for userId: ${userId}`);
+    
     res.json({ success: true, data: orders });
   } catch (error) {
     logger.error('Error in getOrders:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch orders' });
+    res.status(500).json({ success: false, message: 'Failed to get orders' });
   }
 };
 
@@ -37,19 +43,22 @@ export const getOrder = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.auth?.userId;
     if (!userId) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
     }
 
     const { id } = req.params;
     const order = await orderService.getOrderById(id);
 
     if (!order) {
-      return res.status(404).json({ success: false, message: 'Order not found' });
+      res.status(404).json({ success: false, message: 'Order not found' });
+      return;
     }
 
     // Ensure user can only view their own orders
     if (order.userId !== userId) {
-      return res.status(403).json({ success: false, message: 'Forbidden' });
+      res.status(403).json({ success: false, message: 'Forbidden' });
+      return;
     }
 
     res.json({ success: true, data: order });
@@ -63,19 +72,22 @@ export const cancelOrder = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.auth?.userId;
     if (!userId) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
     }
 
     const { id } = req.params;
     const order = await orderService.getOrderById(id);
 
     if (!order) {
-      return res.status(404).json({ success: false, message: 'Order not found' });
+      res.status(404).json({ success: false, message: 'Order not found' });
+      return;
     }
 
     // Ensure user can only cancel their own orders
     if (order.userId !== userId) {
-      return res.status(403).json({ success: false, message: 'Forbidden' });
+      res.status(403).json({ success: false, message: 'Forbidden' });
+      return;
     }
 
     const updatedOrder = await orderService.cancelOrder(id);

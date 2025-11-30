@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
-import UserSync from "@/components/UserSync";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CartProvider } from "@/contexts/CartContext";
 
@@ -30,7 +29,6 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <CartProvider>
-              <UserSync />
               <Header />
               <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
                 {children}

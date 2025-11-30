@@ -153,6 +153,51 @@ export class ApiClient {
       headers: { Authorization: `Bearer ${token}` },
     });
   }
+
+  // Addresses
+  async getAddresses(token: string) {
+    return this.request('/addresses', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  async createAddress(data: {
+    fullName: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+    isDefault?: boolean;
+  }, token: string) {
+    return this.request('/addresses', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateAddress(id: string, data: any, token: string) {
+    return this.request(`/addresses/${id}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteAddress(id: string, token: string) {
+    return this.request(`/addresses/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  async setDefaultAddress(id: string, token: string) {
+    return this.request(`/addresses/${id}/default`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
 }
 
 export const api = new ApiClient();

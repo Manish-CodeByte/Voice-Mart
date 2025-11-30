@@ -1,109 +1,170 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
-import { Bell, Lock, Globe, Palette, CreditCard, Shield } from 'lucide-react';
-import { redirect } from 'next/navigation';
+import { Bell, Lock, Globe, Moon, Sun, Monitor } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 export default function SettingsPage() {
-  const { user, isLoaded } = useUser();
-
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    redirect('/');
-  }
-
-  const settingsSections = [
-    {
-      icon: <Bell className="h-5 w-5" />,
-      title: 'Notifications',
-      description: 'Manage email and push notifications',
-      action: 'Configure',
-    },
-    {
-      icon: <Lock className="h-5 w-5" />,
-      title: 'Privacy & Security',
-      description: 'Control your privacy settings',
-      action: 'Manage',
-    },
-    {
-      icon: <Globe className="h-5 w-5" />,
-      title: 'Language & Region',
-      description: 'Set your preferred language',
-      action: 'Change',
-    },
-    {
-      icon: <Palette className="h-5 w-5" />,
-      title: 'Appearance',
-      description: 'Customize your theme preferences',
-      action: 'Customize',
-    },
-    {
-      icon: <CreditCard className="h-5 w-5" />,
-      title: 'Payment Methods',
-      description: 'Manage saved payment options',
-      action: 'Update',
-    },
-    {
-      icon: <Shield className="h-5 w-5" />,
-      title: 'Account Security',
-      description: 'Two-factor authentication and more',
-      action: 'Setup',
-    },
-  ];
+  const { user } = useUser();
+  const { theme, setTheme } = useTheme();
+  const [notifications, setNotifications] = useState({
+    orderUpdates: true,
+    promotions: false,
+    newsletter: true,
+  });
 
   return (
     <div className="min-h-screen pt-24 pb-16 px-6">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Settings</h1>
-          <p className="text-muted-foreground">Manage your account preferences</p>
+        <Breadcrumbs />
+        
+        <h1 className="text-4xl font-bold mb-8">Settings</h1>
+
+        {/* Account Settings */}
+        <div className="p-6 rounded-2xl border-2 border-border bg-card mb-6">
+          <div className="flex items center gap-3 mb-6">
+            <Lock className="h-6 w-6 text-primary" />
+            <h2 className="text-2xl font-bold">Account</h2>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-accent/50">
+              <div>
+                <h3 className="font-semibold mb-1">Email</h3>
+                <p className="text-sm text-muted-foreground">{user?.emailAddresses[0]?.emailAddress}</p>
+              </div>
+              <button className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all">
+                Change
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-xl bg-accent/50">
+              <div>
+                <h3 className="font-semibold mb-1">Password</h3>
+                <p className="text-sm text-muted-foreground">••••••••</p>
+              </div>
+              <button className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all">
+                Change
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Settings Grid */}
-        <div className="space-y-4">
-          {settingsSections.map((section, idx) => (
-            <div
-              key={idx}
-              className="p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/30 hover:shadow-xl transition-all group cursor-pointer"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                    {section.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-1">{section.title}</h3>
-                    <p className="text-sm text-muted-foreground">{section.description}</p>
-                  </div>
-                </div>
-                <button className="px-4 py-2 rounded-lg border-2 border-border hover:border-primary/30 hover:bg-accent transition-all font-medium text-sm">
-                  {section.action}
+        {/* Appearance */}
+        <div className="p-6 rounded-2xl border-2 border-border bg-card mb-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Globe className="h-6 w-6 text-primary" />
+            <h2 className="text-2xl font-bold">Appearance</h2>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold mb-3">Theme</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={() => setTheme('light')}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    theme === 'light'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <Sun className="h-5 w-5 mx-auto mb-2 text-primary" />
+                  <div className="text-sm font-semibold">Light</div>
+                </button>
+
+                <button
+                  onClick={() => setTheme('dark')}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    theme === 'dark'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <Moon className="h-5 w-5 mx-auto mb-2 text-primary" />
+                  <div className="text-sm font-semibold">Dark</div>
+                </button>
+
+                <button
+                  onClick={() => setTheme('system')}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    theme === 'system'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <Monitor className="h-5 w-5 mx-auto mb-2 text-primary" />
+                  <div className="text-sm font-semibold">System</div>
                 </button>
               </div>
             </div>
-          ))}
+          </div>
+        </div>
+
+        {/* Notifications */}
+        <div className="p-6 rounded-2xl border-2 border-border bg-card mb-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Bell className="h-6 w-6 text-primary" />
+            <h2 className="text-2xl font-bold">Notifications</h2>
+          </div>
+
+          <div className="space-y-4">
+            <label className="flex items-center justify-between p-4 rounded-xl bg-accent/50 cursor-pointer">
+              <div>
+                <h3 className="font-semibold mb-1">Order Updates</h3>
+                <p className="text-sm text-muted-foreground">Get notified about your order status</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={notifications.orderUpdates}
+                onChange={(e) => setNotifications({ ...notifications, orderUpdates: e.target.checked })}
+                className="w-12 h-6 rounded-full bg-border checked:bg-primary relative appearance-none cursor-pointer transition-colors
+                  before:content-[''] before:absolute before:w-5 before:h-5 before:rounded-full before:bg-white 
+                  before:top-0.5 before:left-0.5 before:transition-transform checked:before:translate-x-6"
+              />
+            </label>
+
+            <label className="flex items-center justify-between p-4 rounded-xl bg-accent/50 cursor-pointer">
+              <div>
+                <h3 className="font-semibold mb-1">Promotions & Offers</h3>
+                <p className="text-sm text-muted-foreground">Receive exclusive deals and offers</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={notifications.promotions}
+                onChange={(e) => setNotifications({ ...notifications, promotions: e.target.checked })}
+                className="w-12 h-6 rounded-full bg-border checked:bg-primary relative appearance-none cursor-pointer transition-colors
+                  before:content-[''] before:absolute before:w-5 before:h-5 before:rounded-full before:bg-white 
+                  before:top-0.5 before:left-0.5 before:transition-transform checked:before:translate-x-6"
+              />
+            </label>
+
+            <label className="flex items-center justify-between p-4 rounded-xl bg-accent/50 cursor-pointer">
+              <div>
+                <h3 className="font-semibold mb-1">Newsletter</h3>
+                <p className="text-sm text-muted-foreground">Weekly updates and new products</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={notifications.newsletter}
+                onChange={(e) => setNotifications({ ...notifications, newsletter: e.target.checked })}
+                className="w-12 h-6 rounded-full bg-border checked:bg-primary relative appearance-none cursor-pointer transition-colors
+                  before:content-[''] before:absolute before:w-5 before:h-5 before:rounded-full before:bg-white 
+                  before:top-0.5 before:left-0.5 before:transition-transform checked:before:translate-x-6"
+              />
+            </label>
+          </div>
         </div>
 
         {/* Danger Zone */}
-        <div className="mt-8 p-6 rounded-2xl border-2 border-destructive/20 bg-destructive/5">
-          <h3 className="font-bold text-lg mb-2 text-destructive">Danger Zone</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            These actions are irreversible. Please be careful.
-          </p>
-          <div className="flex gap-3">
-            <button className="px-4 py-2 rounded-lg border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all font-medium text-sm">
-              Delete Account
-            </button>
-            <button className="px-4 py-2 rounded-lg border-2 border-border hover:border-destructive/30 transition-all font-medium text-sm">
-              Export Data
+        <div className="p-6 rounded-2xl border-2 border-destructive/50 bg-destructive/5">
+          <h2 className="text-2xl font-bold text-destructive mb-4">Danger Zone</h2>
+          <div className="space-y-3">
+            <button className="w-full p-4 rounded-xl border-2 border-destructive/50 hover:bg-destructive/10 transition-all text-left">
+              <h3 className="font-semibold text-destructive mb-1">Delete Account</h3>
+              <p className="text-sm text-muted-foreground">Permanently delete your account and all data</p>
             </button>
           </div>
         </div>

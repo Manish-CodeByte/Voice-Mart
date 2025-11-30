@@ -1,4 +1,4 @@
-import 'dotenv/config'; // Load env vars before any other imports
+import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -15,10 +15,8 @@ import productsRoutes from './routes/products.js';
 import cartRoutes from './routes/cart.js';
 import wishlistRoutes from './routes/wishlist.js';
 import ordersRoutes from './routes/orders.js';
+import addressesRoutes from './routes/addresses.js';
 import { authMiddleware } from './middleware/auth.js';
-
-// Load environment variables (already loaded at top)
-// dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -52,7 +50,7 @@ app.use(cors({
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),
     max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
     message: 'Too many requests from this IP, please try again later.'
 });
@@ -69,7 +67,7 @@ app.use(morgan('combined', {
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Clerk Authentication Middleware (adds auth state to request)
+// Clerk Authentication Middleware
 app.use(authMiddleware);
 
 // Health check endpoint
@@ -79,17 +77,17 @@ app.get('/health', (_req: Request, res: Response) => {
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         environment: process.env.NODE_ENV || 'development',
-        features: ['Google STT', 'Clerk Auth', 'MVC Architecture']
+        features: ['Google STT', 'Clerk Auth', 'E-commerce', 'Addresses']
     });
 });
 
-// API Routes
-app.use('/api', voiceRoutes);
+// Register routes
+app.use('/api/voice', voiceRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/orders', ordersRoutes);
-// app.use('/api/auth', authRoutes); // Clerk handles auth on frontend mostly, but we can add webhook handlers here later
+app.use('/api/addresses', addressesRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
