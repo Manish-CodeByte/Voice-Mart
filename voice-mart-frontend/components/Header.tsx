@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { UserButton, SignInButton, SignedIn, SignedOut } from '@clerk/nextjs';
+import { SignInButton, SignedIn, SignedOut } from '@clerk/nextjs';
 import { ShoppingCart } from 'lucide-react';
 import DarkModeToggle from './DarkModeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
+import UserMenu from './UserMenu';
 
 export default function Header() {
     return (
@@ -39,7 +40,7 @@ export default function Header() {
                         
                         <div className="ml-2">
                             <SignedIn>
-                                <UserButton afterSignOutUrl="/" />
+                                <UserMenu />
                             </SignedIn>
                             <SignedOut>
                                 <SignInButton mode="modal">

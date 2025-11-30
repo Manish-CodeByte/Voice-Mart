@@ -10,7 +10,7 @@ const outfit = Outfit({ subsets: ["latin"], weight: ["300", "400", "500", "600",
 
 export const metadata: Metadata = {
   title: "Voice Mart - AI Powered Shopping",
-  description: "Shop with your voice using Gemini AI",
+  description: "Shop with your voice with all freedom!!",
 };
 
 export default function RootLayout({
