@@ -198,6 +198,78 @@ export class ApiClient {
       headers: { Authorization: `Bearer ${token}` },
     });
   }
+
+  // Admin APIs
+  async createProduct(data: any, token: string) {
+    return this.request('/admin/products', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateProduct(id: string, data: any, token: string) {
+    return this.request(`/admin/products/${id}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteProduct(id: string, token: string) {
+    return this.request(`/admin/products/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  async getAllOrdersAdmin(token: string, status?: string) {
+    const query = status && status !== 'all' ? `?status=${status}` : '';
+    return this.request(`/admin/orders${query}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  async updateOrderStatusAdmin(id: string, status: string, token: string) {
+    return this.request(`/admin/orders/${id}/status`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async getOrderStats(token: string) {
+    return this.request('/admin/stats/orders', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  async getAllUsers(token: string) {
+    return this.request('/admin/users', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  async getUserStats(token: string) {
+    return this.request('/admin/stats/users', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  // User Preferences
+  async getPreferences(token: string) {
+    return this.request('/preferences', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  async updatePreferences(data: any, token: string) {
+    return this.request('/preferences', {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const api = new ApiClient();

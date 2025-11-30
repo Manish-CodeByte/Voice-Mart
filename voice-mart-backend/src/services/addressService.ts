@@ -2,21 +2,24 @@ import { db } from '../config/firebase.js';
 import { Address, CreateAddressDTO, UpdateAddressDTO } from '../models/address.js';
 import logger from '../utils/logger.js';
 
+interface UserAddresses {
+  userId: string;
+  addresses: Address[];
+  updatedAt: Date;
+}
+
 class AddressService {
   private get collection() {
-    return db.collection('addresses');
+    return db.collection('userAddresses');
   }
 
   async createAddress(userId: string, dto: CreateAddressDTO): Promise<Address> {
     try {
+      const doc = await this.collection.doc(userId).get();
       const now = new Date();
 
-      // If this is set as default, unset other defaults
-      if (dto.isDefault) {
-        await this.unsetDefaultAddresses(userId);
-      }
-
-      const addressData = {
+      const newAddress: Address = {
+        id: Date.now().toString(), // Simple ID generation
         userId,
         ...dto,
         isDefault: dto.isDefault || false,
@@ -24,12 +27,28 @@ class AddressService {
         updatedAt: now,
       };
 
-      const docRef = await this.collection.add(addressData);
-      
-      return {
-        id: docRef.id,
-        ...addressData,
-      };
+      let addresses: Address[] = [];
+
+      if (doc.exists) {
+        const data = doc.data() as UserAddresses;
+        addresses = data.addresses || [];
+
+        // If setting as default, unset others
+        if (newAddress.isDefault) {
+          addresses = addresses.map(addr => ({ ...addr, isDefault: false }));
+        }
+      }
+
+      addresses.push(newAddress);
+
+      await this.collection.doc(userId).set({
+        userId,
+        addresses,
+        updatedAt: now,
+      });
+
+      logger.info(`Address created for user ${userId}`);
+      return newAddress;
     } catch (error) {
       logger.error('Error creating address:', error);
       throw error;
@@ -38,18 +57,21 @@ class AddressService {
 
   async getAddresses(userId: string): Promise<Address[]> {
     try {
-      const snapshot = await this.collection
-        .where('userId', '==', userId)
-        .orderBy('isDefault', 'desc')
-        .orderBy('createdAt', 'desc')
-        .get();
+      const doc = await this.collection.doc(userId).get();
 
-      return snapshot.docs.map((doc: any) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-        updatedAt: doc.data().updatedAt?.toDate(),
-      }));
+      if (!doc.exists) {
+        return [];
+      }
+
+      const data = doc.data() as UserAddresses;
+      const addresses = data.addresses || [];
+
+      // Sort: default first, then by creation date
+      return addresses.sort((a, b) => {
+        if (a.isDefault && !b.isDefault) return -1;
+        if (!a.isDefault && b.isDefault) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
     } catch (error) {
       logger.error('Error getting addresses:', error);
       throw error;
@@ -58,25 +80,8 @@ class AddressService {
 
   async getAddress(addressId: string, userId: string): Promise<Address | null> {
     try {
-      const doc = await this.collection.doc(addressId).get();
-      
-      if (!doc.exists) {
-        return null;
-      }
-
-      const data = doc.data();
-      
-      // Verify ownership
-      if (data?.userId !== userId) {
-        throw new Error('Unauthorized access to address');
-      }
-
-      return {
-        id: doc.id,
-        ...data,
-        createdAt: data?.createdAt?.toDate(),
-        updatedAt: data?.updatedAt?.toDate(),
-      } as Address;
+      const addresses = await this.getAddresses(userId);
+      return addresses.find(addr => addr.id === addressId) || null;
     } catch (error) {
       logger.error('Error getting address:', error);
       throw error;
@@ -85,28 +90,38 @@ class AddressService {
 
   async updateAddress(addressId: string, userId: string, dto: UpdateAddressDTO): Promise<Address> {
     try {
-      const address = await this.getAddress(addressId, userId);
-      
-      if (!address) {
+      const doc = await this.collection.doc(userId).get();
+
+      if (!doc.exists) {
+        throw new Error('No addresses found');
+      }
+
+      const data = doc.data() as UserAddresses;
+      let addresses = data.addresses || [];
+
+      const index = addresses.findIndex(addr => addr.id === addressId);
+      if (index === -1) {
         throw new Error('Address not found');
       }
 
-      // If setting as default, unset other defaults
+      // If setting as default, unset others
       if (dto.isDefault) {
-        await this.unsetDefaultAddresses(userId);
+        addresses = addresses.map(addr => ({ ...addr, isDefault: false }));
       }
 
-      const updateData = {
+      addresses[index] = {
+        ...addresses[index],
         ...dto,
         updatedAt: new Date(),
       };
 
-      await this.collection.doc(addressId).update(updateData);
+      await this.collection.doc(userId).update({
+        addresses,
+        updatedAt: new Date(),
+      });
 
-      return {
-        ...address,
-        ...updateData,
-      };
+      logger.info(`Address ${addressId} updated for user ${userId}`);
+      return addresses[index];
     } catch (error) {
       logger.error('Error updating address:', error);
       throw error;
@@ -115,14 +130,21 @@ class AddressService {
 
   async deleteAddress(addressId: string, userId: string): Promise<void> {
     try {
-      const address = await this.getAddress(addressId, userId);
-      
-      if (!address) {
-        throw new Error('Address not found');
+      const doc = await this.collection.doc(userId).get();
+
+      if (!doc.exists) {
+        throw new Error('No addresses found');
       }
 
-      await this.collection.doc(addressId).delete();
-      logger.info(`Address ${addressId} deleted`);
+      const data = doc.data() as UserAddresses;
+      const addresses = (data.addresses || []).filter(addr => addr.id !== addressId);
+
+      await this.collection.doc(userId).update({
+        addresses,
+        updatedAt: new Date(),
+      });
+
+      logger.info(`Address ${addressId} deleted for user ${userId}`);
     } catch (error) {
       logger.error('Error deleting address:', error);
       throw error;
@@ -131,43 +153,33 @@ class AddressService {
 
   async setDefaultAddress(addressId: string, userId: string): Promise<Address> {
     try {
-      // Unset all defaults
-      await this.unsetDefaultAddresses(userId);
+      const doc = await this.collection.doc(userId).get();
 
-      // Set this one as default
-      await this.collection.doc(addressId).update({
-        isDefault: true,
+      if (!doc.exists) {
+        throw new Error('No addresses found');
+      }
+
+      const data = doc.data() as UserAddresses;
+      const addresses = (data.addresses || []).map(addr => ({
+        ...addr,
+        isDefault: addr.id === addressId,
+        updatedAt: addr.id === addressId ? new Date() : addr.updatedAt,
+      }));
+
+      await this.collection.doc(userId).update({
+        addresses,
         updatedAt: new Date(),
       });
 
-      const address = await this.getAddress(addressId, userId);
-      
-      if (!address) {
+      const updatedAddress = addresses.find(addr => addr.id === addressId);
+      if (!updatedAddress) {
         throw new Error('Address not found');
       }
 
-      return address;
+      logger.info(`Address ${addressId} set as default for user ${userId}`);
+      return updatedAddress;
     } catch (error) {
       logger.error('Error setting default address:', error);
-      throw error;
-    }
-  }
-
-  private async unsetDefaultAddresses(userId: string): Promise<void> {
-    try {
-      const snapshot = await this.collection
-        .where('userId', '==', userId)
-        .where('isDefault', '==', true)
-        .get();
-
-      const batch = db.batch();
-      snapshot.docs.forEach((doc) => {
-        batch.update(doc.ref, { isDefault: false });
-      });
-
-      await batch.commit();
-    } catch (error) {
-      logger.error('Error unsetting default addresses:', error);
       throw error;
     }
   }

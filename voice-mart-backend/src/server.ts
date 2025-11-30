@@ -16,6 +16,8 @@ import cartRoutes from './routes/cart.js';
 import wishlistRoutes from './routes/wishlist.js';
 import ordersRoutes from './routes/orders.js';
 import addressesRoutes from './routes/addresses.js';
+import adminRoutes from './routes/admin.js';
+import userPreferencesRoutes from './routes/userPreferences.js';
 import { authMiddleware } from './middleware/auth.js';
 
 const app = express();
@@ -88,6 +90,8 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/addresses', addressesRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/preferences', userPreferencesRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
