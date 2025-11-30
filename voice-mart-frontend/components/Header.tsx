@@ -7,58 +7,69 @@ import DarkModeToggle from './DarkModeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
 import UserMenu from './UserMenu';
 import { useCart } from '@/contexts/CartContext';
+import CartDrawer from './CartDrawer';
+import { useState } from 'react';
 
 export default function Header() {
     const { totalItems } = useCart();
-    return (
-        <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60">
-            <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                <div className="flex h-16 items-center justify-between">
-                    {/* Logo */}
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full group-hover:bg-primary/30 transition-all duration-300" />
-                            <div className="relative w-9 h-9 rounded-xl bg-linear-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20">
-                                <svg className="w-5 h-5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                </svg>
-                            </div>
-                        </div>
-                        <span className="text-lg font-semibold tracking-tight bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">Voice Mart</span>
-                    </Link>
+    const [isCartOpen, setIsCartOpen] = useState(false);
 
-                    {/* Navigation */}
-                    <nav className="flex items-center gap-2">
-                        <LanguageSwitcher />
-                        <DarkModeToggle />
-                        
-                        <Link 
-                            href="/cart" 
-                            className="relative p-2.5 rounded-lg hover:bg-accent transition-colors group"
-                        >
-                            <ShoppingCart className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                            {totalItems > 0 && (
-                                <span className="absolute -top-0.5 -right-0.5 h-5 w-5 bg-primary text-[10px] font-bold text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/30">
-                                    {totalItems > 9 ? '9+' : totalItems}
-                                </span>
-                            )}
+    return (
+        <>
+            <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60">
+                <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-20">
+                        {/* Logo */}
+                        <Link href="/" className="flex items-center gap-3 group">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/60 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+                                <div className="relative bg-gradient-to-br from-primary to-primary/80 p-2.5 rounded-xl shadow-lg">
+                                    <svg className="h-7 w-7 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                                Voice Mart
+                            </span>
                         </Link>
-                        
-                        <div className="ml-2">
-                            <SignedIn>
-                                <UserMenu />
-                            </SignedIn>
-                            <SignedOut>
-                                <SignInButton mode="modal">
-                                    <button className="px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:shadow-primary/30">
-                                        Sign In
-                                    </button>
-                                </SignInButton>
-                            </SignedOut>
-                        </div>
-                    </nav>
+
+                        {/* Navigation */}
+                        <nav className="flex items-center gap-2">
+                            <LanguageSwitcher />
+                            <DarkModeToggle />
+                            
+                            <button
+                                onClick={() => setIsCartOpen(true)}
+                                className="relative p-2.5 rounded-lg hover:bg-accent transition-colors group"
+                            >
+                                <ShoppingCart className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                                {totalItems > 0 && (
+                                    <span className="absolute -top-0.5 -right-0.5 h-5 w-5 bg-primary text-[10px] font-bold text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/30">
+                                        {totalItems > 9 ? '9+' : totalItems}
+                                    </span>
+                                )}
+                            </button>
+                            
+                            <div className="ml-2">
+                                <SignedIn>
+                                    <UserMenu />
+                                </SignedIn>
+                                <SignedOut>
+                                    <SignInButton mode="modal">
+                                        <button className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                                            Sign In
+                                        </button>
+                                    </SignInButton>
+                                </SignedOut>
+                            </div>
+                        </nav>
+                    </div>
                 </div>
-            </div>
-        </header>
+            </header>
+
+            {/* Cart Drawer */}
+            <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+        </>
     );
 }

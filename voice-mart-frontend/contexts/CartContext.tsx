@@ -18,58 +18,121 @@ interface CartContextType {
   totalPrice: number;
   loading: boolean;
   addToCart: (productId: string, quantity?: number) => Promise<void>;
-  updateQuantity: (productId: string, quantity: number) => Promise<void>;
-  removeItem: (productId: string) => Promise<void>;
+  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string) => void;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
+  syncCart: () => Promise<void>;
+  getItemQuantity: (productId: string) => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+
+const CART_STORAGE_KEY = 'voice_mart_cart';
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPrice, setTotalPrice] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const refreshCart = async () => {
-    if (!isLoaded || !user) return;
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+    if (savedCart) {
+      try {
+        setItems(JSON.parse(savedCart));
+      } catch (error) {
+        console.error('Error loading cart from localStorage:', error);
+      }
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    if (items.length > 0) {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    } else {
+      localStorage.removeItem(CART_STORAGE_KEY);
+    }
+  }, [items]);
+
+  // Sync with backend when user logs in
+  useEffect(() => {
+    if (isLoaded && user) {
+      syncCart();
+    }
+  }, [user, isLoaded]);
+
+  const syncCart = async () => {
+    if (!user) return;
     
-    setLoading(true);
     try {
       const token = await getToken();
       if (!token) return;
 
+      // Get backend cart
       const response = await api.getCart(token);
       if (response.success && response.data) {
-        const data = response.data as any;
-        setItems(data.items || []);
-        setTotalItems(data.totalItems || 0);
-        setTotalPrice(data.totalPrice || 0);
+        const backendCart = response.data as any;
+        
+        // Merge with local cart (local takes precedence)
+        if (items.length > 0 && backendCart.items.length === 0) {
+          // Upload local cart to backend
+          for (const item of items) {
+            await api.addToCart(item.productId, item.quantity, token);
+          }
+        } else if (backendCart.items.length > 0) {
+          // Use backend cart
+          setItems(backendCart.items);
+        }
       }
     } catch (error) {
-      console.error('Error fetching cart:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error syncing cart:', error);
     }
   };
 
-  useEffect(() => {
-    refreshCart();
-  }, [user, isLoaded]);
+  const refreshCart = async () => {
+    // Just recalculate from local state
+    return;
+  };
+
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const addToCart = async (productId: string, quantity: number = 1) => {
     setLoading(true);
     try {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
-
-      const response = await api.addToCart(productId, quantity, token);
-      if (response.success) {
-        await refreshCart();
+      // Fetch product details
+      const response = await api.getProduct(productId);
+      if (!response.success || !response.data) {
+        throw new Error('Product not found');
       }
+
+      const product = response.data as any;
+
+      setItems(prevItems => {
+        const existingItem = prevItems.find(item => item.productId === productId);
+        
+        if (existingItem) {
+          return prevItems.map(item =>
+            item.productId === productId
+              ? { ...item, quantity: item.quantity + quantity }
+              : item
+          );
+        } else {
+          return [
+            ...prevItems,
+            {
+              productId,
+              productName: product.name,
+              productImage: product.images?.[0] || '',
+              quantity,
+              price: product.price,
+            },
+          ];
+        }
+      });
     } catch (error) {
       console.error('Error adding to cart:', error);
       throw error;
@@ -78,60 +141,41 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateQuantity = async (productId: string, quantity: number) => {
-    setLoading(true);
-    try {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
-
-      const response = await api.updateCartItem(productId, quantity, token);
-      if (response.success) {
-        await refreshCart();
-      }
-    } catch (error) {
-      console.error('Error updating cart:', error);
-      throw error;
-    } finally {
-      setLoading(false);
+  const updateQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeItem(productId);
+      return;
     }
+
+    setItems(prevItems =>
+      prevItems.map(item =>
+        item.productId === productId ? { ...item, quantity } : item
+      )
+    );
   };
 
-  const removeItem = async (productId: string) => {
-    setLoading(true);
-    try {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
-
-      const response = await api.removeFromCart(productId, token);
-      if (response.success) {
-        await refreshCart();
-      }
-    } catch (error) {
-      console.error('Error removing from cart:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+  const removeItem = (productId: string) => {
+    setItems(prevItems => prevItems.filter(item => item.productId !== productId));
   };
 
   const clearCart = async () => {
-    setLoading(true);
+    setItems([]);
+    localStorage.removeItem(CART_STORAGE_KEY);
+
+    // Also clear backend cart
     try {
       const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
-
-      const response = await api.clearCart(token);
-      if (response.success) {
-        setItems([]);
-        setTotalItems(0);
-        setTotalPrice(0);
+      if (token) {
+        await api.clearCart(token);
       }
     } catch (error) {
-      console.error('Error clearing cart:', error);
-      throw error;
-    } finally {
-      setLoading(false);
+      console.error('Error clearing backend cart:', error);
     }
+  };
+
+  const getItemQuantity = (productId: string): number => {
+    const item = items.find(i => i.productId === productId);
+    return item?.quantity || 0;
   };
 
   return (
@@ -146,6 +190,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         removeItem,
         clearCart,
         refreshCart,
+        syncCart,
+        getItemQuantity,
       }}
     >
       {children}

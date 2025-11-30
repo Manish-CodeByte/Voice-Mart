@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
+import Breadcrumbs from '@/components/Breadcrumbs';
 import { Search, Filter } from 'lucide-react';
 
 export default function ShopPage() {
-  const router = useRouter();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,17 +19,19 @@ export default function ShopPage() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await api.getProducts({
-        category: category || undefined,
-        search: searchQuery || undefined,
-      });
+      const filters: any = {};
+      if (searchQuery) filters.search = searchQuery;
+      if (category) filters.category = category;
+
+      const response = await api.getProducts(filters);
       if (response.success && response.data) {
-        setProducts(response.data as any[]);
+        setProducts(Array.isArray(response.data) ? response.data : []);
       } else {
         setProducts([]);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -46,6 +47,8 @@ export default function ShopPage() {
   return (
     <div className="min-h-screen pt-24 pb-16 px-6">
       <div className="max-w-7xl mx-auto">
+        <Breadcrumbs />
+        
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Shop Products</h1>
