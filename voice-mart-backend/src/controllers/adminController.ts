@@ -120,15 +120,19 @@ export const getAllOrders = async (req: AuthRequest, res: Response) => {
       query = query.where('status', '==', status);
     }
 
-    query = query.orderBy('createdAt', 'desc').limit(Number(limit));
-
     const snapshot = await query.get();
     const orders = snapshot.docs.map((doc: any) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate(),
       updatedAt: doc.data().updatedAt?.toDate(),
-    }));
+    }))
+    .sort((a: any, b: any) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    })
+    .slice(0, Number(limit));
 
     res.json({
       success: true,
@@ -192,16 +196,19 @@ export const getAllUsers = async (req: AuthRequest, res: Response) => {
   try {
     const { limit = 100 } = req.query;
 
-    const snapshot = await db.collection('users')
-      .orderBy('createdAt', 'desc')
-      .limit(Number(limit))
-      .get();
+    const snapshot = await db.collection('users').get();
 
     const users = snapshot.docs.map((doc: any) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate(),
-    }));
+    }))
+    .sort((a: any, b: any) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    })
+    .slice(0, Number(limit));
 
     res.json({
       success: true,

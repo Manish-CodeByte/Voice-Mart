@@ -4,6 +4,10 @@ import logger from '../utils/logger.js';
 
 const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',').map(email => email.trim().toLowerCase()) || [];
 
+// Debug logging
+console.log('🔐 ADMIN_EMAILS loaded:', ADMIN_EMAILS);
+console.log('🔐 Raw ADMIN_EMAILS env:', process.env.ADMIN_EMAILS);
+
 export const requireAdminMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     // Check if user is authenticated
