@@ -1,7 +1,7 @@
 'use client';
 
 import { useUser, useAuth } from '@clerk/nextjs';
-import { Package, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { Package, Clock, CheckCircle, XCircle, Eye, Truck, Box, MapPin, CreditCard, Calendar, X } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
@@ -12,6 +12,8 @@ export default function OrdersPage() {
   const { getToken } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -36,6 +38,28 @@ export default function OrdersPage() {
     }
   };
 
+  const handleCancelOrder = async (orderId: string) => {
+    if (!confirm('Are you sure you want to cancel this order?')) return;
+
+    setCancelling(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const response = await api.cancelOrder(orderId, token);
+      if (response.success) {
+        await fetchOrders();
+        setSelectedOrder(null);
+        alert('Order cancelled successfully');
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      alert('Failed to cancel order');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   if (!isLoaded || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -52,9 +76,15 @@ export default function OrdersPage() {
     switch (status) {
       case 'delivered':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 'shipped':
+      case 'out_for_delivery':
+        return <Truck className="h-5 w-5 text-blue-500" />;
       case 'processing':
+      case 'confirmed':
+      case 'packed':
         return <Clock className="h-5 w-5 text-primary" />;
       case 'cancelled':
+      case 'failed':
         return <XCircle className="h-5 w-5 text-destructive" />;
       default:
         return <Package className="h-5 w-5" />;
@@ -65,9 +95,15 @@ export default function OrdersPage() {
     switch (status) {
       case 'delivered':
         return 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20';
+      case 'shipped':
+      case 'out_for_delivery':
+        return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
       case 'processing':
+      case 'confirmed':
+      case 'packed':
         return 'bg-primary/10 text-primary border-primary/20';
       case 'cancelled':
+      case 'failed':
         return 'bg-destructive/10 text-destructive border-destructive/20';
       default:
         return 'bg-muted text-muted-foreground';
@@ -76,7 +112,7 @@ export default function OrdersPage() {
 
   const totalOrders = orders.length;
   const deliveredCount = orders.filter(o => o.status === 'delivered').length;
-  const processingCount = orders.filter(o => o.status === 'processing').length;
+  const activeCount = orders.filter(o => ['pending', 'confirmed', 'processing', 'packed', 'shipped', 'out_for_delivery'].includes(o.status)).length;
 
   return (
     <div className="min-h-screen pt-24 pb-16 px-6">
@@ -105,24 +141,24 @@ export default function OrdersPage() {
 
           <div className="p-6 rounded-2xl border-2 border-border bg-card">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 rounded-xl bg-green-500/10 text-green-600">
-                <CheckCircle className="h-5 w-5" />
+              <div className="p-3 rounded-xl bg-blue-500/10 text-blue-600">
+                <Truck className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{deliveredCount}</p>
-                <p className="text-sm text-muted-foreground">Delivered</p>
+                <p className="text-2xl font-bold">{activeCount}</p>
+                <p className="text-sm text-muted-foreground">Active</p>
               </div>
             </div>
           </div>
 
           <div className="p-6 rounded-2xl border-2 border-border bg-card">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 rounded-xl bg-primary/10 text-primary">
-                <Clock className="h-5 w-5" />
+              <div className="p-3 rounded-xl bg-green-500/10 text-green-600">
+                <CheckCircle className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{processingCount}</p>
-                <p className="text-sm text-muted-foreground">Processing</p>
+                <p className="text-2xl font-bold">{deliveredCount}</p>
+                <p className="text-sm text-muted-foreground">Delivered</p>
               </div>
             </div>
           </div>
@@ -136,7 +172,10 @@ export default function OrdersPage() {
             </div>
             <h3 className="text-xl font-bold mb-2">No orders yet</h3>
             <p className="text-muted-foreground mb-6">Start shopping to see your orders here</p>
-            <button className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all">
+            <button
+              onClick={() => window.location.href = '/shop'}
+              className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all"
+            >
               Browse Products
             </button>
           </div>
@@ -145,45 +184,176 @@ export default function OrdersPage() {
             {orders.map((order) => (
               <div
                 key={order.id}
-                className="p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/30 hover:shadow-xl transition-all"
+                className="p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/30 transition-all"
               >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-primary/10 text-primary">
-                      <Package className="h-6 w-6" />
-                    </div>
+                <div className="flex flex-col gap-4">
+                  {/* Order Header */}
+                  <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-bold text-lg mb-1">Order #{order.id.substring(0, 8)}</h3>
-                      <p className="text-sm text-muted-foreground mb-2">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-bold text-xl">
+                          {order.items[0]?.productName}
+                          {order.items.length > 1 && ` +${order.items.length - 1} more`}
+                        </h3>
+                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border font-semibold text-sm ${getStatusColor(order.status)}`}>
+                          {getStatusIcon(order.status)}
+                          <span className="capitalize">{order.status.replace('_', ' ')}</span>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-1">Order ID: #{order.id.substring(0, 12)}</p>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })}
+                        </span>
+                        <span>{order.totalItems} item(s)</span>
+                      </div>
+                    </div>
 
-                        {new Date(order.createdAt).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })}
-                      </p>
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="text-muted-foreground">{order.totalItems} item(s)</span>
+                    <div className="text-right">
+                      <p className="font-bold text-2xl text-primary mb-2">₹{order.totalPrice.toLocaleString()}</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setSelectedOrder(order)}
+                          className="px-4 py-2 rounded-lg border-2 border-border hover:border-primary/30 hover:bg-accent transition-all flex items-center gap-2 font-semibold"
+                        >
+                          <Eye className="h-4 w-4" />
+                          View Details
+                        </button>
+                        {!['delivered', 'cancelled', 'failed'].includes(order.status) && (
+                          <button
+                            onClick={() => handleCancelOrder(order.id)}
+                            disabled={cancelling}
+                            className="px-4 py-2 rounded-lg border-2 border-destructive/50 text-destructive hover:bg-destructive/10 transition-all font-semibold disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="font-bold text-xl mb-2">₹{order.totalPrice.toLocaleString()}</p>
-                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border font-semibold text-sm ${getStatusColor(order.status)}`}>
-                        {getStatusIcon(order.status)}
-                        <span className="capitalize">{order.status}</span>
+                  {/* Order Items Preview */}
+                  <div className="flex gap-3 overflow-x-auto pb-2">
+                    {order.items.slice(0, 4).map((item: any, idx: number) => (
+                      <div key={idx} className="flex-shrink-0">
+                        <img
+                          src={item.productImage || 'https://via.placeholder.com/80'}
+                          alt={item.productName}
+                          className="w-20 h-20 rounded-lg object-cover bg-accent"
+                        />
                       </div>
-                    </div>
-
-                    <button className="p-3 rounded-lg border-2 border-border hover:border-primary/30 hover:bg-accent transition-all">
-                      <Eye className="h-5 w-5" />
-                    </button>
+                    ))}
+                    {order.items.length > 4 && (
+                      <div className="w-20 h-20 rounded-lg bg-accent flex items-center justify-center text-muted-foreground font-semibold">
+                        +{order.items.length - 4}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Order Details Modal */}
+        {selectedOrder && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-card rounded-2xl border-2 border-border max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b border-border p-6 flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Order Details</h2>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="p-2 rounded-lg hover:bg-accent transition-all"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Status & ID */}
+                <div>
+                  <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border font-semibold mb-3 ${getStatusColor(selectedOrder.status)}`}>
+                    {getStatusIcon(selectedOrder.status)}
+                    <span className="capitalize">{selectedOrder.status.replace('_', ' ')}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Order ID: #{selectedOrder.id}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Placed on {new Date(selectedOrder.createdAt).toLocaleDateString('en-US', { 
+                      month: 'long', 
+                      day: 'numeric', 
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+
+                {/* Items */}
+                <div>
+                  <h3 className="font-bold text-lg mb-3">Items ({selectedOrder.totalItems})</h3>
+                  <div className="space-y-3">
+                    {selectedOrder.items.map((item: any, idx: number) => (
+                      <div key={idx} className="flex gap-4 p-4 rounded-xl bg-accent/50">
+                        <img
+                          src={item.productImage || 'https://via.placeholder.com/80'}
+                          alt={item.productName}
+                          className="w-20 h-20 rounded-lg object-cover bg-accent"
+                        />
+                        <div className="flex-1">
+                          <h4 className="font-semibold mb-1">{item.productName}</h4>
+                          <p className="text-sm text-muted-foreground mb-2">Qty: {item.quantity}</p>
+                          <p className="font-bold text-primary">₹{(item.price * item.quantity).toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Shipping Address */}
+                <div>
+                  <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    Shipping Address
+                  </h3>
+                  <div className="p-4 rounded-xl bg-accent/50">
+                    <p className="font-semibold mb-1">{selectedOrder.shippingAddress.fullName}</p>
+                    <p className="text-sm text-muted-foreground mb-1">{selectedOrder.shippingAddress.address}</p>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state} - {selectedOrder.shippingAddress.pincode}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Phone: {selectedOrder.shippingAddress.phone}</p>
+                  </div>
+                </div>
+
+                {/* Payment */}
+                <div>
+                  <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+                    <CreditCard className="h-5 w-5" />
+                    Payment
+                  </h3>
+                  <div className="p-4 rounded-xl bg-accent/50">
+                    <p className="text-sm text-muted-foreground capitalize">{selectedOrder.paymentMethod.replace('_', ' ')}</p>
+                    <p className="font-bold text-2xl text-primary mt-2">₹{selectedOrder.totalPrice.toLocaleString()}</p>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                {!['delivered', 'cancelled', 'failed'].includes(selectedOrder.status) && (
+                  <button
+                    onClick={() => handleCancelOrder(selectedOrder.id)}
+                    disabled={cancelling}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-destructive/50 text-destructive hover:bg-destructive/10 transition-all font-semibold disabled:opacity-50"
+                  >
+                    {cancelling ? 'Cancelling...' : 'Cancel Order'}
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
