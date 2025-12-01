@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { translate } from '@vitalets/google-translate-api';
+import { translate } from 'google-translate-api-x';
 import { getFallbackTranslation } from '@/lib/translations';
 
 export async function POST(req: NextRequest) {
@@ -15,20 +15,21 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Missing "text" or "to" field' }, { status: 400 });
     }
 
-    // 1. Check local fallback dictionary first (Optimization & Reliability)
-    const fallback = getFallbackTranslation(text, to);
-    if (fallback) {
-        return NextResponse.json({ translatedText: fallback });
-    }
-
-    // 2. Call the translation API
+    // 1. Call the translation API (Primary)
     try {
-        const result = await translate(text, { to });
+        // @ts-ignore
+        const result = await translate(text, { to, client: 'gtx' });
         return NextResponse.json({ translatedText: result.text });
     } catch (apiError) {
-        console.error('External API failed, returning original:', apiError);
+        console.error('External API failed, attempting fallback:', apiError);
+        
+        // 2. Check local fallback dictionary if API fails
+        const fallback = getFallbackTranslation(text, to);
+        if (fallback) {
+            return NextResponse.json({ translatedText: fallback, isFallback: true });
+        }
+
         // 3. Fail gracefully by returning original text
-        // We return 200 so the UI doesn't break, but we could add a flag
         return NextResponse.json({ translatedText: text, isFallback: true });
     }
 

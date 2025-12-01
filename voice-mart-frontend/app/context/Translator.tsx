@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useLanguage } from './LanguageContext';
 
+import { getFallbackTranslation } from '@/lib/translations';
+
 type TransProps = {
   children: string; // The original English text
   onTranslated?: (translatedText: string) => void;
@@ -10,7 +12,11 @@ type TransProps = {
 
 export const Trans = ({ children, onTranslated }: TransProps) => {
   const { lang } = useLanguage();
-  const [translated, setTranslated] = useState(children);
+  // Initialize with fallback if available, otherwise original text
+  const [translated, setTranslated] = useState(() => {
+    if (lang === 'en') return children;
+    return getFallbackTranslation(children, lang) || children;
+  });
 
   useEffect(() => {
     const cacheKey = `${lang}:${children}`;
