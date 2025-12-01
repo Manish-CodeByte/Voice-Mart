@@ -10,7 +10,7 @@ export const getProducts = async (req: Request, res: Response) => {
       search: req.query.search as string,
       minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
       maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
-      limit: req.query.limit ? Number(req.query.limit) : 20,
+      limit: req.query.limit ? Number(req.query.limit) : 100,
       sortBy: req.query.sortBy as any,
       sortOrder: req.query.sortOrder as any,
     };
