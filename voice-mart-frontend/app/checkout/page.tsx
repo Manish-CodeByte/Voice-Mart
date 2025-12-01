@@ -43,7 +43,28 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     loadSavedAddresses();
+    
+    // Load persisted checkout data
+    const savedData = localStorage.getItem('checkout_data');
+    if (savedData) {
+      try {
+        const { address, payment } = JSON.parse(savedData);
+        if (address) setShippingAddress(prev => ({ ...prev, ...address }));
+        if (payment) setSelectedPayment(payment);
+      } catch (e) {
+        console.error('Error parsing saved checkout data', e);
+      }
+    }
   }, []);
+
+  // Persist checkout data
+  useEffect(() => {
+    const data = {
+      address: shippingAddress,
+      payment: selectedPayment
+    };
+    localStorage.setItem('checkout_data', JSON.stringify(data));
+  }, [shippingAddress, selectedPayment]);
 
   const loadSavedAddresses = async () => {
     try {
@@ -113,7 +134,7 @@ export default function CheckoutPage() {
     try {
       const token = await getToken();
       if (!token) {
-        toast.error('Please sign in to place order');
+        router.push('/sign-in?redirect_url=/checkout');
         return;
       }
 
@@ -145,6 +166,7 @@ export default function CheckoutPage() {
       
       if (response.success) {
         await clearCart();
+        localStorage.removeItem('checkout_data'); // Clear saved data on success
         router.push('/orders');
       } else {
         toast.error('Failed to place order. Please try again.');
