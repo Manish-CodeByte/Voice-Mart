@@ -129,6 +129,18 @@ app.listen(PORT, () => {
     logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
     logger.info(`🔗 Health check: http://localhost:${PORT}/health`);
     logger.info(`📁 Uploads dir: ${uploadsDir}`);
+
+    // Keep-Alive for Render (Ping every 14 minutes)
+    const PING_INTERVAL = 14 * 60 * 1000; // 14 minutes
+    setInterval(async () => {
+        try {
+            const healthUrl = `http://localhost:${PORT}/health`;
+            await fetch(healthUrl);
+            logger.info('💓 Self-ping successful to keep server alive');
+        } catch (error) {
+            logger.error('Self-ping failed:', error);
+        }
+    }, PING_INTERVAL);
 });
 
 export default app;
