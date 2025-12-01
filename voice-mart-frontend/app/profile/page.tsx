@@ -6,6 +6,7 @@ import { MapPin, Plus, Trash2, CheckCircle2, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import { toast } from 'sonner';
 
 interface Address {
   id: string;
@@ -58,7 +59,7 @@ export default function ProfilePage() {
   const handleAddAddress = async () => {
     if (!newAddress.fullName || !newAddress.phone || !newAddress.address || 
         !newAddress.city || !newAddress.state || !newAddress.pincode) {
-      alert('Please fill in all fields');
+      toast.error('Please fill in all fields');
       return;
     }
 
@@ -83,14 +84,14 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error('Error adding address:', error);
-      alert('Failed to add address');
+      toast.error('Failed to add address');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteAddress = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this address?')) return;
+
 
     try {
       const token = await getToken();
@@ -102,7 +103,7 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error('Error deleting address:', error);
-      alert('Failed to delete address');
+      toast.error('Failed to delete address');
     }
   };
 
@@ -120,7 +121,7 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error('Error setting default address:', error);
-      alert('Failed to set default address');
+      toast.error('Failed to set default address');
     }
   };
 

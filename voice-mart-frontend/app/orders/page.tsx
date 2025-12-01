@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import { toast } from 'sonner';
 
 export default function OrdersPage() {
   const { user, isLoaded } = useUser();
@@ -39,7 +40,7 @@ export default function OrdersPage() {
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    if (!confirm('Are you sure you want to cancel this order?')) return;
+
 
     setCancelling(true);
     try {
@@ -50,11 +51,11 @@ export default function OrdersPage() {
       if (response.success) {
         await fetchOrders();
         setSelectedOrder(null);
-        alert('Order cancelled successfully');
+        toast.success('Order cancelled successfully');
       }
     } catch (error) {
       console.error('Error cancelling order:', error);
-      alert('Failed to cancel order');
+      toast.error('Failed to cancel order');
     } finally {
       setCancelling(false);
     }

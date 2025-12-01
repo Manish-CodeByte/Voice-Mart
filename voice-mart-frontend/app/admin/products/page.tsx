@@ -191,7 +191,7 @@ export default function AdminProductsPage() {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <img
-                          src={product.imageUrl || 'https://via.placeholder.com/50'}
+                          src={product.images?.[0] || product.imageUrl || 'https://via.placeholder.com/50'}
                           alt={product.name}
                           className="w-12 h-12 rounded-lg object-cover bg-accent"
                         />

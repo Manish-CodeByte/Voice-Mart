@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { CreditCard, Building2, Smartphone, Wallet, ArrowLeft, Check, MapPin, BookmarkCheck } from 'lucide-react';
 import { api } from '@/lib/api';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import { toast } from 'sonner';
 
 interface SavedAddress {
   id: string;
@@ -98,13 +99,13 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (!selectedPayment) {
-      alert('Please select a payment method');
+      toast.error('Please select a payment method');
       return;
     }
 
     if (!shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.address || 
         !shippingAddress.city || !shippingAddress.state || !shippingAddress.pincode) {
-      alert('Please fill in all shipping details');
+      toast.error('Please fill in all shipping details');
       return;
     }
 
@@ -112,7 +113,7 @@ export default function CheckoutPage() {
     try {
       const token = await getToken();
       if (!token) {
-        alert('Please sign in to place order');
+        toast.error('Please sign in to place order');
         return;
       }
 
@@ -146,11 +147,11 @@ export default function CheckoutPage() {
         await clearCart();
         router.push('/orders');
       } else {
-        alert('Failed to place order. Please try again.');
+        toast.error('Failed to place order. Please try again.');
       }
     } catch (error) {
       console.error('Error placing order:', error);
-      alert('Failed to place order. Please try again.');
+      toast.error('Failed to place order. Please try again.');
     } finally {
       setProcessing(false);
     }

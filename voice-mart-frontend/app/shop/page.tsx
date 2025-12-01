@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import CustomSelect from '@/components/CustomSelect';
 import { Search, Filter, ArrowUpDown } from 'lucide-react';
 
 export default function ShopPage() {
@@ -135,20 +136,12 @@ export default function ShopPage() {
             </div>
 
             {/* Sort Dropdown */}
-            <div className="relative min-w-[200px]">
-              <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary focus:outline-none transition-colors appearance-none cursor-pointer"
-              >
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CustomSelect
+              value={sortBy}
+              onChange={setSortBy}
+              options={sortOptions}
+              className="min-w-[200px]"
+            />
           </div>
 
           {/* Category Filter */}
