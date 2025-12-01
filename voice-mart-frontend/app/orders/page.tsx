@@ -1,7 +1,7 @@
 'use client';
 
 import { useUser, useAuth } from '@clerk/nextjs';
-import { Package, Clock, CheckCircle, XCircle, Eye, Truck, Box, MapPin, CreditCard, Calendar, X } from 'lucide-react';
+import { Package, Clock, CheckCircle, XCircle, Eye, Truck, Box, MapPin, CreditCard, Calendar, X, Star } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
@@ -308,6 +308,17 @@ export default function OrdersPage() {
                           <h4 className="font-semibold mb-1">{item.productName}</h4>
                           <p className="text-sm text-muted-foreground mb-2">Qty: {item.quantity}</p>
                           <p className="font-bold text-primary">₹{(item.price * item.quantity).toLocaleString()}</p>
+                          
+                          {/* Write Review Button (only for delivered orders) */}
+                          {selectedOrder.status === 'delivered' && (
+                            <a
+                              href={`/shop/${item.productId}#reviews`}
+                              className="inline-flex items-center gap-1 mt-2 text-sm px-3 py-1.5 rounded-lg border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all font-semibold"
+                            >
+                              <Star className="h-3.5 w-3.5" />
+                              Write Review
+                            </a>
+                          )}
                         </div>
                       </div>
                     ))}

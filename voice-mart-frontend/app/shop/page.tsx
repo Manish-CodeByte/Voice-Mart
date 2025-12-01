@@ -4,26 +4,28 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import Breadcrumbs from '@/components/Breadcrumbs';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, ArrowUpDown } from 'lucide-react';
 
 export default function ShopPage() {
   const [products, setProducts] = useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('');
+  const [sortBy, setSortBy] = useState('');
 
   useEffect(() => {
     fetchProducts();
-  }, [category]);
+  }, []);
+
+  useEffect(() => {
+    applyFiltersAndSort();
+  }, [products, searchQuery, category, sortBy]);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const filters: any = {};
-      if (searchQuery) filters.search = searchQuery;
-      if (category) filters.category = category;
-
-      const response = await api.getProducts(filters);
+      const response = await api.getProducts({});
       if (response.success && response.data) {
         setProducts(Array.isArray(response.data) ? response.data : []);
       } else {
@@ -37,12 +39,71 @@ export default function ShopPage() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchProducts();
+  const applyFiltersAndSort = () => {
+    let result = [...products];
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(product =>
+        product.name?.toLowerCase().includes(query) ||
+        product.description?.toLowerCase().includes(query) ||
+        product.category?.toLowerCase().includes(query) ||
+        product.tags?.some((tag: string) => tag.toLowerCase().includes(query))
+      );
+    }
+
+    // Apply category filter
+    if (category) {
+      result = result.filter(product => product.category === category);
+    }
+
+    // Apply sorting
+    switch (sortBy) {
+      case 'price-low':
+        result.sort((a, b) => (a.price || 0) - (b.price || 0));
+        break;
+      case 'price-high':
+        result.sort((a, b) => (b.price || 0) - (a.price || 0));
+        break;
+      case 'name-asc':
+        result.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        break;
+      case 'name-desc':
+        result.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+        break;
+      case 'newest':
+        result.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA;
+        });
+        break;
+      default:
+        // Default sorting (newest first if available)
+        break;
+    }
+
+    setFilteredProducts(result);
   };
 
-  const categories = ['Electronics', 'Fashion', 'Home', 'Sports', 'Books'];
+  const categories = [
+    'Electronics',
+    'Fashion',
+    'Home & Kitchen',
+    'Sports & Fitness',
+    'Books',
+    'Beauty & Personal Care',
+  ];
+
+  const sortOptions = [
+    { value: '', label: 'Default' },
+    { value: 'price-low', label: 'Price: Low to High' },
+    { value: 'price-high', label: 'Price: High to Low' },
+    { value: 'name-asc', label: 'Name: A-Z' },
+    { value: 'name-desc', label: 'Name: Z-A' },
+    { value: 'newest', label: 'Newest First' },
+  ];
 
   return (
     <div className="min-h-screen pt-24 pb-16 px-6">
@@ -52,22 +113,43 @@ export default function ShopPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Shop Products</h1>
-          <p className="text-muted-foreground">Browse our entire collection</p>
+          <p className="text-muted-foreground">
+            Browse our collection of {products.length} products
+          </p>
         </div>
 
         {/* Search & Filters */}
         <div className="mb-8 space-y-4">
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="relative max-w-xl">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for products..."
-              className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary focus:outline-none transition-colors"
-            />
-          </form>
+          {/* Search Bar and Sort */}
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search Bar */}
+            <div className="relative flex-1 max-w-xl">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products by name, category, or tags..."
+                className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary focus:outline-none transition-colors"
+              />
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="relative min-w-[200px]">
+              <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary focus:outline-none transition-colors appearance-none cursor-pointer"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
           {/* Category Filter */}
           <div className="flex items-center gap-2 flex-wrap">
@@ -96,6 +178,15 @@ export default function ShopPage() {
               </button>
             ))}
           </div>
+
+          {/* Results Count */}
+          {!loading && (
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredProducts.length} of {products.length} products
+              {searchQuery && ` for "${searchQuery}"`}
+              {category && ` in ${category}`}
+            </div>
+          )}
         </div>
 
         {/* Products Grid */}
@@ -103,14 +194,30 @@ export default function ShopPage() {
           <div className="flex items-center justify-center py-20">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-xl text-muted-foreground mb-4">No products found</p>
-            <p className="text-muted-foreground">Try adjusting your search or filters</p>
+            <p className="text-muted-foreground mb-6">
+              {searchQuery || category
+                ? 'Try adjusting your search or filters'
+                : 'No products available at the moment'}
+            </p>
+            {(searchQuery || category) && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setCategory('');
+                  setSortBy('');
+                }}
+                className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all"
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

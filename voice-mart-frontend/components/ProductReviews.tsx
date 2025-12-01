@@ -1,0 +1,293 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { api } from '@/lib/api';
+import { Star, ThumbsUp, BadgeCheck } from 'lucide-react';
+
+interface Review {
+  id: string;
+  userId: string;
+  userName: string;
+  rating: number;
+  title?: string;
+  comment: string;
+  verified: boolean;
+  helpful: number;
+  createdAt: Date;
+}
+
+interface ProductReviewsProps {
+  productId: string;
+}
+
+export default function ProductReviews({ productId }: ProductReviewsProps) {
+  const { getToken, isSignedIn } = useAuth();
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [title, setTitle] = useState('');
+  const [comment, setComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [productId]);
+
+  const fetchReviews = async () => {
+    try {
+      const response = await api.getProductReviews(productId);
+      if (response.success && response.data) {
+        setReviews(response.data as Review[]);
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isSignedIn) {
+      alert('Please sign in to write a review');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const response = await api.createReview({
+        productId,
+        rating,
+        title: title || undefined,
+        comment,
+      }, token);
+
+      if (response.success) {
+        setShowReviewForm(false);
+        setRating(5);
+        setTitle('');
+        setComment('');
+        await fetchReviews();
+      } else {
+        alert(response.message || 'Failed to submit review');
+      }
+    } catch (error: any) {
+      console.error('Error submitting review:', error);
+      alert('Failed to submit review. You may have already reviewed this product.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleMarkHelpful = async (reviewId: string) => {
+    try {
+      await api.markReviewHelpful(reviewId);
+      await fetchReviews();
+    } catch (error) {
+      console.error('Error marking review as helpful:', error);
+    }
+  };
+
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    : 0;
+
+  const ratingCounts = [5, 4, 3, 2, 1].map(star => 
+    reviews.filter(r => r.rating === star).length
+  );
+
+  return (
+    <div className="mt-16">
+      <h2 className="text-3xl font-bold mb-8">Customer Reviews</h2>
+
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Rating Summary */}
+          <div className="lg:col-span-1">
+            <div className="p-6 rounded-2xl border-2 border-border bg-card">
+              <div className="text-center mb-6">
+                <div className="text-5xl font-bold mb-2">{averageRating.toFixed(1)}</div>
+                <div className="flex items-center justify-center gap-1 mb-2">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-5 w-5 ${
+                        i < Math.round(averageRating)
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'text-muted'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Based on {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+                </div>
+              </div>
+
+              {/* Rating Breakdown */}
+              <div className="space-y-2 mb-6">
+                {[5, 4, 3, 2, 1].map((star, idx) => (
+                  <div key={star} className="flex items-center gap-2">
+                    <span className="text-sm w-8">{star} ★</span>
+                    <div className="flex-1 h-2 rounded-full bg-accent overflow-hidden">
+                      <div
+                        className="h-full bg-yellow-400"
+                        style={{
+                          width: `${reviews.length > 0 ? (ratingCounts[idx] / reviews.length) * 100 : 0}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="text-sm text-muted-foreground w-8 text-right">
+                      {ratingCounts[idx]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Write Review Button */}
+              {isSignedIn && (
+                <button
+                  onClick={() => setShowReviewForm(!showReviewForm)}
+                  className="w-full px-4 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all"
+                >
+                  {showReviewForm ? 'Cancel' : 'Write a Review'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Reviews List */}
+          <div className="lg:col-span-2">
+            {/* Review Form */}
+            {showReviewForm && (
+              <form onSubmit={handleSubmitReview} className="mb-8 p-6 rounded-2xl border-2 border-border bg-card">
+                <h3 className="text-xl font-bold mb-4">Write Your Review</h3>
+                
+                {/* Star Rating */}
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold mb-2">Rating *</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRating(star)}
+                        className="transition-transform hover:scale-110"
+                      >
+                        <Star
+                          className={`h-8 w-8 ${
+                            star <= rating
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-muted'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold mb-2">Title (optional)</label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Sum up your experience"
+                    className="w-full px-4 py-2 rounded-xl border-2 border-border bg-background focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                {/* Comment */}
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold mb-2">Review *</label>
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    required
+                    rows={4}
+                    placeholder="Share your thoughts about this product"
+                    className="w-full px-4 py-2 rounded-xl border-2 border-border bg-background focus:border-primary focus:outline-none resize-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submitting || !comment}
+                  className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  {submitting ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </form>
+            )}
+
+            {/* Reviews */}
+            {reviews.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <p>No reviews yet. Be the first to review this product!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <div key={review.id} className="p-6 rounded-2xl border-2 border-border bg-card">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-bold">{review.userName}</span>
+                          {review.verified && (
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 text-xs font-semibold">
+                              <BadgeCheck className="h-3 w-3" />
+                              Verified Purchase
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-4 w-4 ${
+                                i < review.rating
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'text-muted'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    {review.title && (
+                      <h4 className="font-semibold mb-2">{review.title}</h4>
+                    )}
+                    
+                    <p className="text-muted-foreground mb-4">{review.comment}</p>
+
+                    <button
+                      onClick={() => handleMarkHelpful(review.id)}
+                      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <ThumbsUp className="h-4 w-4" />
+                      Helpful ({review.helpful})
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

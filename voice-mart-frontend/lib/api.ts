@@ -27,11 +27,25 @@ export class ApiClient {
         headers,
       });
 
-      const data = await response.json();
-      return data;
+      // Handle non-JSON responses (like rate limit errors)
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        return data;
+      } else {
+        // Non-JSON response (e.g., rate limit error)
+        const text = await response.text();
+        return {
+          success: false,
+          message: text || 'Request failed',
+        };
+      }
     } catch (error) {
       console.error('API request error:', error);
-      throw error;
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Request failed',
+      };
     }
   }
 
@@ -268,6 +282,57 @@ export class ApiClient {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}` },
       body: JSON.stringify(data),
+    });
+  }
+
+  // Reviews
+  async createReview(data: {
+    productId: string;
+    rating: number;
+    title?: string;
+    comment: string;
+    images?: string[];
+  }, token: string) {
+    return this.request('/reviews', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getProductReviews(productId: string) {
+    return this.request(`/reviews/product/${productId}`);
+  }
+
+  async getMyReviews(token: string) {
+    return this.request('/reviews/my-reviews', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  async updateReview(reviewId: string, data: {
+    rating?: number;
+    title?: string;
+    comment?: string;
+    images?: string[];
+  }, token: string) {
+    return this.request(`/reviews/${reviewId}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteReview(reviewId: string, token: string) {
+    return this.request(`/reviews/${reviewId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  async markReviewHelpful(reviewId: string) {
+    return this.request(`/reviews/${reviewId}/helpful`, {
+      method: 'POST',
     });
   }
 }

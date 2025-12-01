@@ -7,6 +7,7 @@ export interface AuthRequest extends Request {
     auth?: {
         userId?: string;
         sessionId?: string;
+        sessionClaims?: Record<string, any>;
     };
 }
 
@@ -27,3 +28,6 @@ export const requireAuthMiddleware = (req: Request, res: Response, next: NextFun
     (req as AuthRequest).auth = auth;
     next();
 };
+
+// Export as requireAuth for convenience
+export const requireAuth = requireAuthMiddleware;

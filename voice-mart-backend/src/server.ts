@@ -18,6 +18,7 @@ import ordersRoutes from './routes/orders.js';
 import addressesRoutes from './routes/addresses.js';
 import adminRoutes from './routes/admin.js';
 import userPreferencesRoutes from './routes/userPreferences.js';
+import reviewsRoutes from './routes/reviews.js';
 import { authMiddleware } from './middleware/auth.js';
 
 const app = express();
@@ -50,11 +51,17 @@ app.use(cors({
     credentials: true
 }));
 
-// Rate limiting
+// Rate limiting - very relaxed for development
 const limiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
-    message: 'Too many requests from this IP, please try again later.'
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '2000'), // 2000 requests per 15min
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => {
+      // Skip rate limiting for localhost in development
+      return process.env.NODE_ENV === 'development';
+    }
 });
 app.use('/api/', limiter);
 
@@ -92,6 +99,7 @@ app.use('/api/orders', ordersRoutes);
 app.use('/api/addresses', addressesRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/preferences', userPreferencesRoutes);
+app.use('/api/reviews', reviewsRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

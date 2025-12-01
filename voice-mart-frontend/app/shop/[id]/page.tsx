@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@clerk/nextjs';
 import { ShoppingCart, Heart, Star, Check, Truck, Shield, ArrowLeft } from 'lucide-react';
+import ProductReviews from '@/components/ProductReviews';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -267,6 +268,9 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        <ProductReviews productId={params.id as string} />
       </div>
     </div>
   );

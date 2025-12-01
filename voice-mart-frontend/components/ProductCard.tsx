@@ -134,7 +134,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Product Details */}
         <div className="p-4">
           {/* Rating */}
-          {product.rating && (
+          {product.rating && product.reviews && product.reviews > 0 && (
             <div className="flex items-center gap-1 mb-2">
               {[...Array(5)].map((_, i) => (
                 <Star
@@ -147,7 +147,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 />
               ))}
               <span className="text-xs text-muted-foreground ml-1">
-                ({product.reviews || 0})
+                ({product.reviews})
               </span>
             </div>
           )}
