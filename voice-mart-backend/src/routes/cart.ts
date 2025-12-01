@@ -1,7 +1,6 @@
 import { Router } from 'express';
-import * as cartController from '../controllers/cartController';
-import { authMiddleware } from '../middleware/auth';
-
+import { authMiddleware } from '../middleware/auth.js';
+import * as cartController from '../controllers/cartController.js';
 const router = Router();
 
 // All cart routes require authentication

@@ -1,7 +1,6 @@
 import { Router } from 'express';
-import * as orderController from '../controllers/orderController';
-import { authMiddleware } from '../middleware/auth';
-
+import * as orderController from '../controllers/orderController.js';
+import { authMiddleware } from '../middleware/auth.js';
 const router = Router();
 
 // All order routes require authentication
