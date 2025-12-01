@@ -11,6 +11,7 @@ import CartDrawer from './CartDrawer';
 import { useState } from 'react';
 
 import { usePathname } from 'next/navigation';
+import { Trans } from '@/app/context/Translator';
 
 export default function Header() {
     const { totalItems } = useCart();
@@ -63,7 +64,7 @@ export default function Header() {
                                 <SignedOut>
                                     <SignInButton mode="modal">
                                         <button className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
-                                            Sign In
+                                            <Trans>Sign In</Trans>
                                         </button>
                                     </SignInButton>
                                 </SignedOut>

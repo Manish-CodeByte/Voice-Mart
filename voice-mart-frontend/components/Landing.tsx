@@ -76,12 +76,12 @@ const Landing = () => {
                 className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-linear-to-r from-primary to-secondary text-primary-foreground font-semibold hover:shadow-2xl hover:shadow-primary/30 transition-all overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                <span className="relative">Start Shopping</span>
+                <span className="relative"><Trans>Start Shopping</Trans></span>
                 <ArrowRight className="relative h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
               <button className="inline-flex items-center gap-2 px-8 py-4 rounded-xl border-2 border-primary/30 bg-card hover:bg-primary/5 hover:border-primary/50 transition-all font-medium shadow-sm hover:shadow-lg">
                 <Mic className="h-4 w-4 text-primary" />
-                Try Voice Demo
+                <Trans>Try Voice Demo</Trans>
               </button>
             </div>
           </motion.div>
@@ -93,11 +93,11 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16 space-y-4">
             <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold">
-              Features
+              <Trans>Features</Trans>
             </div>
-            <h2 className="text-4xl font-bold">Powerful AI Features</h2>
+            <h2 className="text-4xl font-bold"><Trans>Powerful AI Features</Trans></h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              Advanced technology that makes shopping feel like magic
+              <Trans>Advanced technology that makes shopping feel like magic</Trans>
             </p>
           </div>
 
@@ -142,9 +142,9 @@ const Landing = () => {
                 <div className="mb-6 inline-flex p-4 rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20 shadow-lg shadow-primary/10">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
+                <h3 className="text-xl font-bold mb-3"><Trans>{feature.title}</Trans></h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  {feature.description}
+                  <Trans>{feature.description}</Trans>
                 </p>
                 
                 {/* Decorative element */}
@@ -160,10 +160,10 @@ const Landing = () => {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16 space-y-4">
             <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold">
-              How It Works
+              <Trans>How It Works</Trans>
             </div>
-            <h2 className="text-4xl font-bold">Three Simple Steps</h2>
-            <p className="text-muted-foreground text-lg">Get started in minutes</p>
+            <h2 className="text-4xl font-bold"><Trans>Three Simple Steps</Trans></h2>
+            <p className="text-muted-foreground text-lg"><Trans>Get started in minutes</Trans></p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -203,8 +203,8 @@ const Landing = () => {
                     <div className="mb-4 inline-flex p-3 rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
                       {item.icon}
                     </div>
-                    <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">{item.description}</p>
+                    <h3 className="text-xl font-bold mb-2"><Trans>{item.title}</Trans></h3>
+                    <p className="text-muted-foreground leading-relaxed"><Trans>{item.description}</Trans></p>
                   </div>
                 </div>
               </div>
@@ -228,7 +228,7 @@ const Landing = () => {
                   {stat.icon}
                 </div>
                 <div className="text-4xl font-bold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">{stat.value}</div>
-                <div className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">{stat.label}</div>
+                <div className="text-sm text-muted-foreground uppercase tracking-wider font-semibold"><Trans>{stat.label}</Trans></div>
               </div>
             ))}
           </div>
@@ -243,12 +243,12 @@ const Landing = () => {
         <div className="max-w-4xl mx-auto text-center relative">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/10 text-sm font-medium mb-8">
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-primary font-semibold">Start Your Journey</span>
+            <span className="text-primary font-semibold"><Trans>Start Your Journey</Trans></span>
           </div>
           
-          <h2 className="text-5xl font-bold mb-6">Ready to get started?</h2>
+          <h2 className="text-5xl font-bold mb-6"><Trans>Ready to get started?</Trans></h2>
           <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-            Join thousands of users shopping smarter with Voice Mart today. Experience the future of e-commerce.
+            <Trans>Join thousands of users shopping smarter with Voice Mart today. Experience the future of e-commerce.</Trans>
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -257,14 +257,14 @@ const Landing = () => {
               className="group relative inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-linear-to-r from-primary to-secondary text-primary-foreground font-semibold hover:shadow-2xl hover:shadow-primary/30 transition-all overflow-hidden"
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-              <span className="relative">Get Started Free</span>
+              <span className="relative"><Trans>Get Started Free</Trans></span>
               <ArrowRight className="relative h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               href="/learn-more"
               className="inline-flex items-center gap-2 px-10 py-4 rounded-xl border-2 border-primary/30 bg-card hover:bg-primary/5 transition-all font-medium"
             >
-              Learn More
+              <Trans>Learn More</Trans>
             </Link>
           </div>
         </div>

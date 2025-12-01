@@ -6,6 +6,7 @@ import ProductCard from '@/components/ProductCard';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import CustomSelect from '@/components/CustomSelect';
 import { Search, Filter, ArrowUpDown } from 'lucide-react';
+import { Trans } from '@/app/context/Translator';
 
 export default function ShopPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -115,9 +116,9 @@ export default function ShopPage() {
         
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Shop Products</h1>
+          <h1 className="text-4xl font-bold mb-2"><Trans>Shop Products</Trans></h1>
           <p className="text-muted-foreground">
-            Browse our collection of {products.length} products
+            <Trans>Browse our collection of</Trans> {products.length} <Trans>products</Trans>
           </p>
         </div>
 
@@ -191,11 +192,11 @@ export default function ShopPage() {
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-xl text-muted-foreground mb-4">No products found</p>
+            <p className="text-xl text-muted-foreground mb-4"><Trans>No products found</Trans></p>
             <p className="text-muted-foreground mb-6">
               {searchQuery || category
                 ? 'Try adjusting your search or filters'
-                : 'No products available at the moment'}
+                : <Trans>No products available at the moment</Trans>}
             </p>
             {(searchQuery || category) && (
               <button
@@ -206,7 +207,7 @@ export default function ShopPage() {
                 }}
                 className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all"
               >
-                Clear Filters
+                <Trans>Clear Filters</Trans>
               </button>
             )}
           </div>

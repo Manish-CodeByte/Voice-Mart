@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ShoppingCart, Heart, Star, Plus, Minus } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { Trans } from '@/app/context/Translator';
 import { useAuth } from '@clerk/nextjs';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
@@ -108,7 +109,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {product.stock === 0 && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
               <span className="px-4 py-2 rounded-full bg-destructive text-destructive-foreground font-semibold text-sm">
-                Out of Stock
+                <Trans>Out of Stock</Trans>
               </span>
             </div>
           )}
@@ -128,7 +129,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Cart Badge */}
           {itemQuantity > 0 && (
             <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full bg-primary text-primary-foreground font-bold text-sm shadow-lg">
-              {itemQuantity} in cart
+              {itemQuantity} <Trans>in cart</Trans>
             </div>
           )}
         </div>
@@ -189,7 +190,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               <ShoppingCart className="h-4 w-4" />
-              {loading ? 'Adding...' : 'Add to Cart'}
+              {loading ? <Trans>Adding...</Trans> : <Trans>Add to Cart</Trans>}
             </button>
           )}
         </div>
