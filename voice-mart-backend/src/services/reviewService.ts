@@ -37,7 +37,9 @@ class ReviewService {
       }
 
       const reviewData: Omit<Review, 'id'> = {
-        ...dto,
+        productId: dto.productId,
+        rating: dto.rating,
+        comment: dto.comment,
         userId,
         userName,
         userEmail,
@@ -46,6 +48,10 @@ class ReviewService {
         createdAt: now,
         updatedAt: now,
       };
+
+      // Only add optional fields if they exist
+      if (dto.title) reviewData.title = dto.title;
+      if (dto.images && dto.images.length > 0) reviewData.images = dto.images;
 
       const docRef = await this.collection.add(reviewData);
 
@@ -68,15 +74,21 @@ class ReviewService {
     try {
       const snapshot = await this.collection
         .where('productId', '==', productId)
-        .orderBy('createdAt', 'desc')
         .get();
 
-      return snapshot.docs.map((doc: any) => ({
+      const reviews = snapshot.docs.map((doc: any) => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate(),
         updatedAt: doc.data().updatedAt?.toDate(),
       }));
+
+      // Sort in memory to avoid Firestore index requirement
+      return reviews.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA; // newest first
+      });
     } catch (error) {
       logger.error('Error getting product reviews:', error);
       throw error;
@@ -87,15 +99,21 @@ class ReviewService {
     try {
       const snapshot = await this.collection
         .where('userId', '==', userId)
-        .orderBy('createdAt', 'desc')
         .get();
 
-      return snapshot.docs.map((doc: any) => ({
+      const reviews = snapshot.docs.map((doc: any) => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate(),
         updatedAt: doc.data().updatedAt?.toDate(),
       }));
+
+      // Sort in memory
+      return reviews.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
     } catch (error) {
       logger.error('Error getting user reviews:', error);
       throw error;

@@ -14,6 +14,30 @@ class OrderService {
   async createOrder(userId: string, dto: CreateOrderDTO): Promise<Order> {
     try {
       const now = new Date();
+      
+      // Validate and deduct stock for each item
+      for (const item of dto.items) {
+        const productDoc = await db.collection('products').doc(item.productId).get();
+        
+        if (!productDoc.exists) {
+          throw new Error(`Product ${item.productId} not found`);
+        }
+        
+        const productData = productDoc.data();
+        const currentStock = productData?.stock || 0;
+        
+        if (currentStock < item.quantity) {
+          throw new Error(`Insufficient stock for ${item.productName}. Available: ${currentStock}, Requested: ${item.quantity}`);
+        }
+        
+        // Deduct stock
+        await db.collection('products').doc(item.productId).update({
+          stock: currentStock - item.quantity,
+        });
+        
+        logger.info(`Deducted ${item.quantity} units from product ${item.productId}. New stock: ${currentStock - item.quantity}`);
+      }
+      
       const totalItems = dto.items.reduce((sum: number, item: any) => sum + item.quantity, 0);
       const totalPrice = dto.items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
 
@@ -127,6 +151,22 @@ class OrderService {
 
       if (order.status === 'delivered' || order.status === 'cancelled') {
         throw new Error('Cannot cancel order with current status');
+      }
+
+      // Restore stock for each item
+      for (const item of order.items) {
+        const productDoc = await db.collection('products').doc(item.productId).get();
+        
+        if (productDoc.exists) {
+          const productData = productDoc.data();
+          const currentStock = productData?.stock || 0;
+          
+          await db.collection('products').doc(item.productId).update({
+            stock: currentStock + item.quantity,
+          });
+          
+          logger.info(`Restored ${item.quantity} units to product ${item.productId}. New stock: ${currentStock + item.quantity}`);
+        }
       }
 
       return await this.updateOrderStatus(orderId, { status: 'cancelled' });

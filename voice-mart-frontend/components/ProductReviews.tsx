@@ -22,7 +22,7 @@ interface ProductReviewsProps {
 }
 
 export default function ProductReviews({ productId }: ProductReviewsProps) {
-  const { getToken, isSignedIn } = useAuth();
+  const { getToken, isSignedIn, userId } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -30,6 +30,10 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [editingReview, setEditingReview] = useState<string | null>(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editTitle, setEditTitle] = useState('');
+  const [editComment, setEditComment] = useState('');
 
   useEffect(() => {
     fetchReviews();
@@ -90,6 +94,58 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       await fetchReviews();
     } catch (error) {
       console.error('Error marking review as helpful:', error);
+    }
+  };
+
+  const startEditingReview = (review: Review) => {
+    setEditingReview(review.id);
+    setEditRating(review.rating);
+    setEditTitle(review.title || '');
+    setEditComment(review.comment);
+  };
+
+  const handleUpdateReview = async (reviewId: string) => {
+    if (!editComment) return;
+    
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const response = await api.updateReview(reviewId, {
+        rating: editRating,
+        title: editTitle || undefined,
+        comment: editComment,
+      }, token);
+
+      if (response.success) {
+        setEditingReview(null);
+        await fetchReviews();
+      } else {
+        alert(response.message || 'Failed to update review');
+      }
+    } catch (error) {
+      console.error('Error updating review:', error);
+      alert('Failed to update review');
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!confirm('Are you sure you want to delete this review?')) return;
+
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const response = await api.deleteReview(reviewId, token);
+
+      if (response.success) {
+        await fetchReviews();
+      } else {
+        alert(response.message || 'Failed to delete review');
+      }
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      alert('Failed to delete review');
     }
   };
 
@@ -239,48 +295,142 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               <div className="space-y-4">
                 {reviews.map((review) => (
                   <div key={review.id} className="p-6 rounded-2xl border-2 border-border bg-card">
-                    <div className="flex items-start justify-between mb-3">
+                    {editingReview === review.id ? (
+                      // Edit Form
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-bold">{review.userName}</span>
-                          {review.verified && (
-                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 text-xs font-semibold">
-                              <BadgeCheck className="h-3 w-3" />
-                              Verified Purchase
-                            </div>
-                          )}
+                        <h4 className="font-bold mb-4">Edit Your Review</h4>
+                        
+                        {/* Star Rating */}
+                        <div className="mb-4">
+                          <label className="block text-sm font-semibold mb-2">Rating *</label>
+                          <div className="flex gap-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() => setEditRating(star)}
+                                className="transition-transform hover:scale-110"
+                              >
+                                <Star
+                                  className={`h-6 w-6 ${
+                                    star <= editRating
+                                      ? 'fill-yellow-400 text-yellow-400'
+                                      : 'text-muted'
+                                  }`}
+                                />
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < review.rating
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-muted'
-                              }`}
-                            />
-                          ))}
+
+                        {/* Title */}
+                        <div className="mb-4">
+                          <label className="block text-sm font-semibold mb-2">Title (optional)</label>
+                          <input
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            placeholder="Sum up your experience"
+                            className="w-full px-4 py-2 rounded-xl border-2 border-border bg-background focus:border-primary focus:outline-none"
+                          />
+                        </div>
+
+                        {/* Comment */}
+                        <div className="mb-4">
+                          <label className="block text-sm font-semibold mb-2">Review *</label>
+                          <textarea
+                            value={editComment}
+                            onChange={(e) => setEditComment(e.target.value)}
+                            required
+                            rows={4}
+                            placeholder="Share your thoughts"
+                            className="w-full px-4 py-2 rounded-xl border-2 border-border bg-background focus:border-primary focus:outline-none resize-none"
+                          />
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleUpdateReview(review.id)}
+                            disabled={!editComment}
+                            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 disabled:opacity-50 transition-all"
+                          >
+                            Save Changes
+                          </button>
+                          <button
+                            onClick={() => setEditingReview(null)}
+                            className="px-4 py-2 rounded-lg border-2 border-border hover:bg-accent transition-all font-semibold"
+                          >
+                            Cancel
+                          </button>
                         </div>
                       </div>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(review.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
+                    ) : (
+                      // Display Review
+                      <>
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-bold">{review.userName}</span>
+                              {review.verified && (
+                                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 text-xs font-semibold">
+                                  <BadgeCheck className="h-3 w-3" />
+                                  Verified Purchase
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < review.rating
+                                      ? 'fill-yellow-400 text-yellow-400'
+                                      : 'text-muted'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
 
-                    {review.title && (
-                      <h4 className="font-semibold mb-2">{review.title}</h4>
+                        {review.title && (
+                          <h4 className="font-semibold mb-2">{review.title}</h4>
+                        )}
+                        
+                        <p className="text-muted-foreground mb-4">{review.comment}</p>
+
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => handleMarkHelpful(review.id)}
+                            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <ThumbsUp className="h-4 w-4" />
+                            Helpful ({review.helpful})
+                          </button>
+
+                          {/* Edit/Delete buttons for own reviews */}
+                          {userId && review.userId === userId && (
+                            <>
+                              <button
+                                onClick={() => startEditingReview(review)}
+                                className="text-sm text-primary hover:underline font-semibold"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteReview(review.id)}
+                                className="text-sm text-destructive hover:underline font-semibold"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </>
                     )}
-                    
-                    <p className="text-muted-foreground mb-4">{review.comment}</p>
-
-                    <button
-                      onClick={() => handleMarkHelpful(review.id)}
-                      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <ThumbsUp className="h-4 w-4" />
-                      Helpful ({review.helpful})
-                    </button>
                   </div>
                 ))}
               </div>
