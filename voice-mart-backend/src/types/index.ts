@@ -22,6 +22,8 @@ export interface ApiResponse<T = any> {
     timestamp: string;
 }
 
+import 'multer'; // Ensure multer types are loaded
+
 export interface VoiceTranscriptionRequest {
     audioFile: Express.Multer.File;
     language?: string;
