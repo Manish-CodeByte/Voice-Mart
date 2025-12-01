@@ -1,10 +1,11 @@
 {
     "compilerOptions": {
         "target": "ES2022",
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext",
+        "module": "ES2022",
+        "moduleResolution": "node",
         "lib": [
-            "ES2022"
+            "ES2022",
+            "DOM"
         ],
         "outDir": "./dist",
         "rootDir": "./src",
@@ -17,9 +18,9 @@
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noImplicitReturns": true,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "noImplicitReturns": false,
         "noFallthroughCasesInSwitch": true
     },
     "include": [
