@@ -39,13 +39,12 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/multer": "^1.4.13",
-    "@types/node": "^22.19.1",
     "@types/winston": "^2.4.4",
     "nodemon": "^3.0.2",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   },
   "overrides": {
-    "@types/node": "22.19.1"
+    "@types/node": "24.10.1"
   }
 }
