@@ -128,6 +128,25 @@ class OrderService {
 
   async updateOrderStatus(orderId: string, dto: UpdateOrderStatusDTO): Promise<Order | null> {
     try {
+      const order = await this.getOrderById(orderId);
+      if (!order) throw new Error('Order not found');
+
+      // Handle stock restoration if cancelling
+      if (dto.status === 'cancelled' && order.status !== 'cancelled') {
+        for (const item of order.items) {
+          const productDoc = await db.collection('products').doc(item.productId).get();
+          if (productDoc.exists) {
+            const productData = productDoc.data();
+            const currentStock = productData?.stock || 0;
+            
+            await db.collection('products').doc(item.productId).update({
+              stock: currentStock + item.quantity,
+            });
+            logger.info(`Restored ${item.quantity} units to product ${item.productId}`);
+          }
+        }
+      }
+
       await this.collection.doc(orderId).update({
         status: dto.status,
         updatedAt: new Date(),
@@ -151,22 +170,6 @@ class OrderService {
 
       if (order.status === 'delivered' || order.status === 'cancelled') {
         throw new Error('Cannot cancel order with current status');
-      }
-
-      // Restore stock for each item
-      for (const item of order.items) {
-        const productDoc = await db.collection('products').doc(item.productId).get();
-        
-        if (productDoc.exists) {
-          const productData = productDoc.data();
-          const currentStock = productData?.stock || 0;
-          
-          await db.collection('products').doc(item.productId).update({
-            stock: currentStock + item.quantity,
-          });
-          
-          logger.info(`Restored ${item.quantity} units to product ${item.productId}. New stock: ${currentStock + item.quantity}`);
-        }
       }
 
       return await this.updateOrderStatus(orderId, { status: 'cancelled' });

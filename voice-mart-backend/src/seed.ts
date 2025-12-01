@@ -578,11 +578,58 @@ const sampleProducts = [
   },
 ];
 
+import { userService } from './services/userService.js';
+
+const sampleUsers = [
+  {
+    uid: 'user_1',
+    email: 'john.doe@example.com',
+    firstName: 'John',
+    lastName: 'Doe',
+  },
+  {
+    uid: 'user_2',
+    email: 'jane.smith@example.com',
+    firstName: 'Jane',
+    lastName: 'Smith',
+  },
+  {
+    uid: 'user_3',
+    email: 'mike.wilson@example.com',
+    firstName: 'Mike',
+    lastName: 'Wilson',
+  },
+  {
+    uid: 'user_4',
+    email: 'sarah.jones@example.com',
+    firstName: 'Sarah',
+    lastName: 'Jones',
+  },
+  {
+    uid: 'user_5',
+    email: 'david.brown@example.com',
+    firstName: 'David',
+    lastName: 'Brown',
+  }
+];
+
 async function seedProducts() {
-  logger.info('Starting product seeding...');
-  logger.info(`Total products to seed: ${sampleProducts.length}\n`);
+  logger.info('Starting seeding...');
   
   try {
+    // Seed Users
+    logger.info('Seeding users...');
+    for (const user of sampleUsers) {
+      try {
+        await userService.createUser(user);
+        logger.info(`✅ Created user: ${user.firstName} ${user.lastName}`);
+      } catch (error) {
+        logger.error(`❌ Failed to create user ${user.email}:`, error);
+      }
+    }
+    logger.info('Users seeded.\n');
+
+    logger.info(`Total products to seed: ${sampleProducts.length}\n`);
     // Clear existing products
     logger.info('Clearing existing products...');
     const snapshot = await productService.getAllProducts({ limit: 1000 });

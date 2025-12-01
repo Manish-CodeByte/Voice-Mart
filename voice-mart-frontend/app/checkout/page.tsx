@@ -41,6 +41,11 @@ export default function CheckoutPage() {
     pincode: '',
   });
 
+  const handleInputChange = (field: keyof typeof shippingAddress, value: string) => {
+    setShippingAddress(prev => ({ ...prev, [field]: value }));
+    setSelectedAddressId('');
+  };
+
   useEffect(() => {
     loadSavedAddresses();
     
@@ -48,9 +53,10 @@ export default function CheckoutPage() {
     const savedData = localStorage.getItem('checkout_data');
     if (savedData) {
       try {
-        const { address, payment } = JSON.parse(savedData);
+        const { address, payment, saveAddr } = JSON.parse(savedData);
         if (address) setShippingAddress(prev => ({ ...prev, ...address }));
         if (payment) setSelectedPayment(payment);
+        if (saveAddr !== undefined) setSaveAddress(saveAddr);
       } catch (e) {
         console.error('Error parsing saved checkout data', e);
       }
@@ -61,10 +67,11 @@ export default function CheckoutPage() {
   useEffect(() => {
     const data = {
       address: shippingAddress,
-      payment: selectedPayment
+      payment: selectedPayment,
+      saveAddr: saveAddress
     };
     localStorage.setItem('checkout_data', JSON.stringify(data));
-  }, [shippingAddress, selectedPayment]);
+  }, [shippingAddress, selectedPayment, saveAddress]);
 
   const loadSavedAddresses = async () => {
     try {
@@ -144,6 +151,7 @@ export default function CheckoutPage() {
           await api.createAddress(shippingAddress, token);
         } catch (error) {
           console.error('Error saving address:', error);
+          toast.error('Failed to save address, but placing order...');
         }
       }
 
@@ -288,7 +296,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     value={shippingAddress.fullName}
-                    onChange={(e) => setShippingAddress({ ...shippingAddress, fullName: e.target.value })}
+                    onChange={(e) => handleInputChange('fullName', e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary outline-none transition-colors"
                     placeholder="John Doe"
                   />
@@ -299,7 +307,7 @@ export default function CheckoutPage() {
                   <input
                     type="tel"
                     value={shippingAddress.phone}
-                    onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary outline-none transition-colors"
                     placeholder="+91 98765 43210"
                   />
@@ -309,7 +317,7 @@ export default function CheckoutPage() {
                   <label className="block text-sm font-semibold mb-2">Address *</label>
                   <textarea
                     value={shippingAddress.address}
-                    onChange={(e) => setShippingAddress({ ...shippingAddress, address: e.target.value })}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary outline-none transition-colors resize-none"
                     rows={3}
                     placeholder="Street address, apartment, suite, etc."
@@ -321,7 +329,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     value={shippingAddress.city}
-                    onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary outline-none transition-colors"
                     placeholder="Mumbai"
                   />
@@ -332,7 +340,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     value={shippingAddress.state}
-                    onChange={(e) => setShippingAddress({ ...shippingAddress, state: e.target.value })}
+                    onChange={(e) => handleInputChange('state', e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary outline-none transition-colors"
                     placeholder="Maharashtra"
                   />
@@ -343,7 +351,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     value={shippingAddress.pincode}
-                    onChange={(e) => setShippingAddress({ ...shippingAddress, pincode: e.target.value })}
+                    onChange={(e) => handleInputChange('pincode', e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary outline-none transition-colors"
                     placeholder="400001"
                   />

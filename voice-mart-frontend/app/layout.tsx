@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CartProvider } from "@/contexts/CartContext";
 import { Toaster } from 'sonner';
+import AuthSync from "@/components/AuthSync";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] });
 
@@ -30,6 +31,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <CartProvider>
+              <AuthSync />
               <Header />
               <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
                 {children}

@@ -335,6 +335,14 @@ export class ApiClient {
       method: 'POST',
     });
   }
+  // User Sync
+  async syncUser(data: { email: string; firstName: string; lastName: string }, token: string) {
+    return this.request('/auth/sync', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const api = new ApiClient();
