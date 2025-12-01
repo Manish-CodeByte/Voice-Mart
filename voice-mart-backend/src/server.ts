@@ -134,9 +134,13 @@ app.listen(PORT, () => {
     const PING_INTERVAL = 14 * 60 * 1000; // 14 minutes
     setInterval(async () => {
         try {
-            const healthUrl = `http://localhost:${PORT}/health`;
+            // Prefer external URL to keep Render active, fallback to localhost
+            const healthUrl = process.env.RENDER_EXTERNAL_URL 
+                ? `${process.env.RENDER_EXTERNAL_URL}/health`
+                : `http://localhost:${PORT}/health`;
+            
             await fetch(healthUrl);
-            logger.info('💓 Self-ping successful to keep server alive');
+            logger.info(`💓 Self-ping successful to ${healthUrl}`);
         } catch (error) {
             logger.error('Self-ping failed:', error);
         }
