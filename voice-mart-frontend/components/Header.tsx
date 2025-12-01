@@ -10,9 +10,14 @@ import { useCart } from '@/contexts/CartContext';
 import CartDrawer from './CartDrawer';
 import { useState } from 'react';
 
+import { usePathname } from 'next/navigation';
+
 export default function Header() {
     const { totalItems } = useCart();
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const pathname = usePathname();
+
+    if (pathname?.startsWith('/admin')) return null;
 
     return (
         <>
