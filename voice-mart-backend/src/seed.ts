@@ -583,6 +583,14 @@ async function seedProducts() {
   logger.info(`Total products to seed: ${sampleProducts.length}\n`);
   
   try {
+    // Clear existing products
+    logger.info('Clearing existing products...');
+    const snapshot = await productService.getAllProducts({ limit: 1000 });
+    for (const product of snapshot) {
+      await productService.deleteProduct(product.id);
+    }
+    logger.info('Existing products cleared.\n');
+
     let successCount = 0;
     let errorCount = 0;
 

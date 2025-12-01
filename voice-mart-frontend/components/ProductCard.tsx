@@ -15,6 +15,7 @@ interface ProductCardProps {
     description: string;
     price: number;
     images: string[];
+    imageUrl?: string;
     category: string;
     stock: number;
     rating?: number;
@@ -100,7 +101,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Product Image */}
         <div className="relative aspect-square overflow-hidden bg-accent">
           <img
-            src={product.images?.[0] || 'https://via.placeholder.com/400'}
+            src={product.images?.[0] || product.imageUrl || 'https://via.placeholder.com/400'}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />

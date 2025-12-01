@@ -114,7 +114,7 @@ export default function AdminProductsPage() {
       description: product.description || '',
       price: product.price.toString(),
       category: product.category,
-      imageUrl: product.imageUrl || '',
+      imageUrl: product.images?.[0] || product.imageUrl || '',
       stock: product.stock?.toString() || '100',
       featured: product.featured || false,
     });

@@ -89,6 +89,8 @@ export default function ShopPage() {
   };
 
   const categories = [
+    'Mobiles',
+    'Laptops',
     'Electronics',
     'Fashion',
     'Home & Kitchen',

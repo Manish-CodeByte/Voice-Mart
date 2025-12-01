@@ -129,7 +129,7 @@ export default function ProductDetailPage() {
             {/* Main Image */}
             <div className="aspect-square rounded-2xl overflow-hidden bg-accent mb-4">
               <img
-                src={product.images?.[selectedImage] || 'https://via.placeholder.com/600'}
+                src={product.images?.[selectedImage] || (product as any).imageUrl || 'https://via.placeholder.com/600'}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
