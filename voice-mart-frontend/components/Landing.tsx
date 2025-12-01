@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Mic, Camera, Globe, Zap, ArrowRight, Check, Sparkles, ShoppingBag, Star, TrendingUp, Users, Shield } from 'lucide-react';
-import TranslatedText from './TranslatedText';
+import { Trans } from '@/app/context/Translator';
 
 const Landing = () => {
   return (
@@ -32,22 +32,22 @@ const Landing = () => {
                 <div className="absolute inset-0 bg-primary/20 blur-md -z-10" />
               </div>
               <span className="bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent font-semibold">
-                <TranslatedText text="Powered with ❤️ to Serve" />
+                <Trans>Powered with ❤️ to Serve</Trans>
               </span>
             </div>
 
             {/* Heading with better emphasis */}
             <div className="space-y-6">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
-                <TranslatedText text="Shop with your" />
+                <Trans>Shop with your</Trans>
                 <span className="block mt-2 bg-linear-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
-                  <TranslatedText text="Voice & Vision" />
+                  <Trans>Voice & Vision</Trans>
                 </span>
               </h1>
               
               {/* Enhanced Subheading */}
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                <TranslatedText text="The most intuitive shopping experience. Speak naturally or upload a photo—our AI understands and finds exactly what you need." />
+                <Trans>The most intuitive shopping experience. Speak naturally or upload a photo—our AI understands and finds exactly what you need.</Trans>
               </p>
 
               {/* Trust indicators */}

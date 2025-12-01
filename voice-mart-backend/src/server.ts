@@ -19,7 +19,6 @@ import addressesRoutes from './routes/addresses.js';
 import adminRoutes from './routes/admin.js';
 import userPreferencesRoutes from './routes/userPreferences.js';
 import reviewsRoutes from './routes/reviews.js';
-import translationRoutes from './routes/translation.js';
 import authRoutes from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
 
@@ -88,7 +87,7 @@ app.get('/health', (_req: Request, res: Response) => {
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         environment: process.env.NODE_ENV || 'development',
-        features: ['Google STT', 'Clerk Auth', 'E-commerce', 'Addresses', 'Translation']
+        features: ['Google STT', 'Clerk Auth', 'E-commerce', 'Addresses']
     });
 });
 
@@ -102,7 +101,6 @@ app.use('/api/addresses', addressesRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/preferences', userPreferencesRoutes);
 app.use('/api/reviews', reviewsRoutes);
-app.use('/api/translate', translationRoutes);
 app.use('/api/auth', authRoutes);
 
 // 404 handler
