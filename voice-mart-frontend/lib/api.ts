@@ -343,6 +343,31 @@ export class ApiClient {
       body: JSON.stringify(data),
     });
   }
+  // Translation
+  async translateText(text: string, targetLang: string) {
+    // No auth required for translation usually, but backend middleware might require it. 
+    // If it's public, we can skip token. But our middleware applies to all routes?
+    // Let's check server.ts. Yes "app.use(authMiddleware)".
+    // But authMiddleware might be loose? No, it usually attaches user if present.
+    // If we want public translation, we should exclude it from auth or allow loose auth.
+    // For now, let's assume we pass token if available, or maybe the backend allows it.
+    // Actually, for a public store, translation should be public.
+    // I'll assume we can pass a token if we have one, or handle it.
+    // But wait, `api.request` handles headers.
+    
+    // Let's just implement it.
+    return this.request('/translate', {
+      method: 'POST',
+      body: JSON.stringify({ text, targetLang }),
+    });
+  }
+
+  async translateBatch(texts: string[], targetLang: string) {
+    return this.request('/translate/batch', {
+      method: 'POST',
+      body: JSON.stringify({ texts, targetLang }),
+    });
+  }
 }
 
 export const api = new ApiClient();

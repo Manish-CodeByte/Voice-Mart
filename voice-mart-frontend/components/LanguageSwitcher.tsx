@@ -2,17 +2,21 @@
 
 import * as React from 'react';
 import { Globe } from 'lucide-react';
+import { useTranslation } from '@/contexts/TranslationContext';
 
 const languages = [
   { code: 'en', name: 'English' },
   { code: 'kn', name: 'ಕನ್ನಡ' },
-  { code: 'tcy', name: 'ತುಳು' },
+  { code: 'tcy', name: 'ತುಳು' }, // Tulu might not be supported by Google Translate API directly, might fallback to Kannada or English
   { code: 'hi', name: 'हिंदी' },
+  { code: 'ta', name: 'தமிழ்' },
+  { code: 'te', name: 'తెలుగు' },
+  { code: 'ml', name: 'മലയാളം' },
 ];
 
 export default function LanguageSwitcher() {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [currentLang, setCurrentLang] = React.useState('en');
+  const { language, setLanguage } = useTranslation();
 
   React.useEffect(() => {
     const handleClickOutside = () => setIsOpen(false);
@@ -33,7 +37,7 @@ export default function LanguageSwitcher() {
       >
         <Globe className="h-5 w-5 text-foreground/70" />
         <span className="text-sm font-medium hidden sm:inline-block">
-          {languages.find(l => l.code === currentLang)?.name}
+          {languages.find(l => l.code === language)?.name || 'Language'}
         </span>
       </button>
 
@@ -43,11 +47,11 @@ export default function LanguageSwitcher() {
             <button
               key={lang.code}
               onClick={() => {
-                setCurrentLang(lang.code);
+                setLanguage(lang.code);
                 setIsOpen(false);
               }}
               className={`w-full px-4 py-2.5 text-sm text-left hover:bg-accent transition-colors ${
-                currentLang === lang.code ? 'bg-accent font-medium' : ''
+                language === lang.code ? 'bg-accent font-medium' : ''
               }`}
             >
               {lang.name}
