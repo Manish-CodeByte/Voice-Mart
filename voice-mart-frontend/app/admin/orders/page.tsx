@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/nextjs';
 import { ShoppingBag, Search, Filter } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { toast } from 'sonner';
 
 export default function AdminOrdersPage() {
   const { getToken } = useAuth();
@@ -44,7 +45,7 @@ export default function AdminOrdersPage() {
       await loadOrders();
     } catch (error) {
       console.error('Error updating order:', error);
-      alert('Failed to update order status');
+      toast.error('Failed to update order status');
     } finally {
       setUpdating(null);
     }

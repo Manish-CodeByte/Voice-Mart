@@ -5,6 +5,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CartProvider } from "@/contexts/CartContext";
+import { Toaster } from 'sonner';
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] });
 
@@ -33,6 +34,7 @@ export default function RootLayout({
               <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
                 {children}
               </main>
+              <Toaster position="top-right" richColors closeButton expand={false} />
             </CartProvider>
           </ThemeProvider>
         </body>

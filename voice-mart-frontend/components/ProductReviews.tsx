@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { api } from '@/lib/api';
 import { Star, ThumbsUp, BadgeCheck } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Review {
   id: string;
@@ -55,7 +56,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isSignedIn) {
-      alert('Please sign in to write a review');
+      toast.error('Please sign in to write a review');
       return;
     }
 
@@ -78,11 +79,11 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
         setComment('');
         await fetchReviews();
       } else {
-        alert(response.message || 'Failed to submit review');
+        toast.error(response.message || 'Failed to submit review');
       }
     } catch (error: any) {
       console.error('Error submitting review:', error);
-      alert('Failed to submit review. You may have already reviewed this product.');
+      toast.error('Failed to submit review. You may have already reviewed this product.');
     } finally {
       setSubmitting(false);
     }
@@ -121,32 +122,43 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
         setEditingReview(null);
         await fetchReviews();
       } else {
-        alert(response.message || 'Failed to update review');
+        toast.error(response.message || 'Failed to update review');
       }
     } catch (error) {
       console.error('Error updating review:', error);
-      alert('Failed to update review');
+      toast.error('Failed to update review');
     }
   };
 
   const handleDeleteReview = async (reviewId: string) => {
-    if (!confirm('Are you sure you want to delete this review?')) return;
+    toast('Are you sure?', {
+      description: 'This will permanently delete your review.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            const token = await getToken();
+            if (!token) return;
 
-    try {
-      const token = await getToken();
-      if (!token) return;
+            const response = await api.deleteReview(reviewId, token);
 
-      const response = await api.deleteReview(reviewId, token);
-
-      if (response.success) {
-        await fetchReviews();
-      } else {
-        alert(response.message || 'Failed to delete review');
-      }
-    } catch (error) {
-      console.error('Error deleting review:', error);
-      alert('Failed to delete review');
-    }
+            if (response.success) {
+              toast.success('Review deleted successfully');
+              await fetchReviews();
+            } else {
+              toast.error(response.message || 'Failed to delete review');
+            }
+          } catch (error) {
+            console.error('Error deleting review:', error);
+            toast.error('Failed to delete review');
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => {},
+      },
+    });
   };
 
   const averageRating = reviews.length > 0

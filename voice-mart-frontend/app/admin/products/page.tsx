@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/nextjs';
 import { Package, Plus, Edit2, Trash2, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { toast } from 'sonner';
 
 export default function AdminProductsPage() {
   const { getToken } = useAuth();
@@ -42,7 +43,7 @@ export default function AdminProductsPage() {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.price || !formData.category) {
-      alert('Please fill in required fields');
+      toast.error('Please fill in required fields');
       return;
     }
 
@@ -77,25 +78,33 @@ export default function AdminProductsPage() {
       });
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('Failed to save product');
+      toast.error('Failed to save product');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    toast('Delete product?', {
+      description: 'This will permanently remove the product.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            const token = await getToken();
+            if (!token) return;
 
-    try {
-      const token = await getToken();
-      if (!token) return;
-
-      await api.deleteProduct(id, token);
-      await loadProducts();
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      alert('Failed to delete product');
-    }
+            await api.deleteProduct(id, token);
+            toast.success('Product deleted successfully');
+            await loadProducts();
+          } catch (error) {
+            console.error('Error deleting product:', error);
+            toast.error('Failed to delete product');
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    });
   };
 
   const handleEdit = (product: any) => {

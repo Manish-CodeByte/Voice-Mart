@@ -7,6 +7,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@clerk/nextjs';
 import { ShoppingCart, Heart, Star, Check, Truck, Shield, ArrowLeft } from 'lucide-react';
 import ProductReviews from '@/components/ProductReviews';
+import { toast } from 'sonner';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -71,7 +72,7 @@ export default function ProductDetailPage() {
     try {
       const token = await getToken();
       if (!token) {
-        alert('Please sign in to add to wishlist');
+        toast.error('Please sign in to add to wishlist');
         return;
       }
 

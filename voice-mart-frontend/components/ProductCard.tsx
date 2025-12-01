@@ -6,6 +6,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@clerk/nextjs';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { toast } from 'sonner';
 
 interface ProductCardProps {
   product: {
@@ -77,7 +78,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     try {
       const token = await getToken();
       if (!token) {
-        alert('Please sign in to add to wishlist');
+        toast.error('Please sign in to add to wishlist');
         return;
       }
 
