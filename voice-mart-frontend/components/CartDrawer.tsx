@@ -4,6 +4,7 @@ import { X, ShoppingCart, Plus, Minus, Trash2, ArrowRight } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import Link from 'next/link';
 import { useEffect } from 'react';
+import { Trans } from '@/app/context/Translator';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -50,8 +51,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
           <div>
-            <h2 className="text-2xl font-bold">Shopping Cart</h2>
-            <p className="text-sm text-muted-foreground">{totalItems} item(s)</p>
+            <h2 className="text-2xl font-bold"><Trans>Shopping Cart</Trans></h2>
+            <p className="text-sm text-muted-foreground">{totalItems} <Trans>item(s)</Trans></p>
           </div>
           <button
             onClick={onClose}
@@ -72,13 +73,13 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <div className="p-6 rounded-full bg-accent mb-4">
                 <ShoppingCart className="h-12 w-12 text-muted-foreground" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Your cart is empty</h3>
-              <p className="text-muted-foreground mb-6">Add items to get started</p>
+              <h3 className="text-xl font-bold mb-2"><Trans>Your cart is empty</Trans></h3>
+              <p className="text-muted-foreground mb-6"><Trans>Add items to get started</Trans></p>
               <button
                 onClick={onClose}
                 className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
               >
-                Continue Shopping
+                <Trans>Continue Shopping</Trans>
               </button>
             </div>
           ) : (
@@ -89,7 +90,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   className="flex gap-4 p-4 rounded-xl border-2 border-border hover:border-primary/30 transition-all"
                 >
                   {/* Image */}
-                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-accent flex-shrink-0">
+                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-accent shrink-0">
                     <img
                       src={item.productImage || 'https://via.placeholder.com/80'}
                       alt={item.productName}
@@ -140,21 +141,21 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             {/* Summary */}
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-muted-foreground"><Trans>Subtotal</Trans></span>
                 <span className="font-semibold">₹{totalPrice.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Delivery</span>
+                <span className="text-muted-foreground"><Trans>Delivery</Trans></span>
                 <span className="font-semibold">
                   {deliveryFee === 0 ? (
-                    <span className="text-green-600">FREE</span>
+                    <span className="text-green-600"><Trans>FREE</Trans></span>
                   ) : (
                     `₹${deliveryFee}`
                   )}
                 </span>
               </div>
               <div className="border-t border-border pt-2 flex justify-between">
-                <span className="font-bold text-lg">Total</span>
+                <span className="font-bold text-lg"><Trans>Total</Trans></span>
                 <span className="font-bold text-2xl text-primary">₹{finalTotal.toLocaleString()}</span>
               </div>
             </div>
@@ -162,7 +163,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             {/* Checkout Button */}
             <Link href="/checkout" onClick={onClose}>
               <button className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:bg-primary/90 transition-all group">
-                Proceed to Checkout
+                <Trans>Proceed to Checkout</Trans>
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </button>
             </Link>
@@ -172,7 +173,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               onClick={onClose}
               className="w-full px-6 py-3 rounded-xl border-2 border-border hover:bg-accent font-semibold transition-all"
             >
-              Continue Shopping
+              <Trans>Continue Shopping</Trans>
             </button>
           </div>
         )}

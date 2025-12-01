@@ -28,14 +28,14 @@ export default function Header() {
                         {/* Logo */}
                         <Link href="/" className="flex items-center gap-3 group">
                             <div className="relative">
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/60 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
-                                <div className="relative bg-gradient-to-br from-primary to-primary/80 p-2.5 rounded-xl shadow-lg">
+                                <div className="absolute inset-0 bg-linear-to-br from-primary to-primary/60 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+                                <div className="relative bg-linear-to-br from-primary to-primary/80 p-2.5 rounded-xl shadow-lg">
                                     <svg className="h-7 w-7 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                                     </svg>
                                 </div>
                             </div>
-                            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                            <span className="text-2xl font-bold bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                                 Voice Mart
                             </span>
                         </Link>

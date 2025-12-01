@@ -2,6 +2,7 @@
 
 import { ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { Trans } from '@/app/context/Translator';
 
 interface CartItemProps {
   item: {
@@ -76,7 +77,7 @@ export default function CartItem({ item }: CartItemProps) {
 
       {/* Subtotal */}
       <div className="shrink-0 text-right">
-        <p className="text-sm text-muted-foreground mb-1">Subtotal</p>
+        <p className="text-sm text-muted-foreground mb-1"><Trans>Subtotal</Trans></p>
         <p className="font-bold text-xl">₹{(item.price * item.quantity).toLocaleString()}</p>
       </div>
     </div>

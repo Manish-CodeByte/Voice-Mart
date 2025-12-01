@@ -8,7 +8,7 @@ export default function NotFound() {
         {/* Animated 404 Icon */}
         <div className="relative mb-8">
           <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
-          <div className="relative inline-flex p-8 rounded-3xl bg-gradient-to-br from-primary/10 to-secondary/10 border-2 border-border">
+          <div className="relative inline-flex p-8 rounded-3xl bg-linear-to-br from-primary/10 to-secondary/10 border-2 border-border">
             <AlertCircle className="h-24 w-24 text-primary" strokeWidth={1.5} />
           </div>
         </div>

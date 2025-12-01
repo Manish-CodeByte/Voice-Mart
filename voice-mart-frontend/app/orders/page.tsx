@@ -8,6 +8,8 @@ import { api } from '@/lib/api';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import { toast } from 'sonner';
 
+import { Trans } from '@/app/context/Translator';
+
 export default function OrdersPage() {
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
@@ -122,8 +124,8 @@ export default function OrdersPage() {
         
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">My Orders</h1>
-          <p className="text-muted-foreground">Track and manage your orders</p>
+          <h1 className="text-4xl font-bold mb-2"><Trans>My Orders</Trans></h1>
+          <p className="text-muted-foreground"><Trans>Track and manage your orders</Trans></p>
         </div>
 
         {/* Stats */}
@@ -135,7 +137,7 @@ export default function OrdersPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{totalOrders}</p>
-                <p className="text-sm text-muted-foreground">Total Orders</p>
+                <p className="text-sm text-muted-foreground"><Trans>Total Orders</Trans></p>
               </div>
             </div>
           </div>
@@ -147,7 +149,7 @@ export default function OrdersPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{activeCount}</p>
-                <p className="text-sm text-muted-foreground">Active</p>
+                <p className="text-sm text-muted-foreground"><Trans>Active</Trans></p>
               </div>
             </div>
           </div>
@@ -159,7 +161,7 @@ export default function OrdersPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{deliveredCount}</p>
-                <p className="text-sm text-muted-foreground">Delivered</p>
+                <p className="text-sm text-muted-foreground"><Trans>Delivered</Trans></p>
               </div>
             </div>
           </div>
@@ -171,13 +173,13 @@ export default function OrdersPage() {
             <div className="inline-flex p-6 rounded-2xl bg-accent mb-4">
               <Package className="h-12 w-12 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-bold mb-2">No orders yet</h3>
-            <p className="text-muted-foreground mb-6">Start shopping to see your orders here</p>
+            <h3 className="text-xl font-bold mb-2"><Trans>No orders yet</Trans></h3>
+            <p className="text-muted-foreground mb-6"><Trans>Start shopping to see your orders here</Trans></p>
             <button
               onClick={() => window.location.href = '/shop'}
               className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all"
             >
-              Browse Products
+              <Trans>Browse Products</Trans>
             </button>
           </div>
         ) : (
@@ -201,7 +203,7 @@ export default function OrdersPage() {
                           <span className="capitalize">{order.status.replace('_', ' ')}</span>
                         </div>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-1">Order ID: #{order.id.substring(0, 12)}</p>
+                      <p className="text-sm text-muted-foreground mb-1"><Trans>Order ID</Trans>: #{order.id.substring(0, 12)}</p>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
@@ -211,7 +213,7 @@ export default function OrdersPage() {
                             year: 'numeric' 
                           })}
                         </span>
-                        <span>{order.totalItems} item(s)</span>
+                        <span>{order.totalItems} <Trans>item(s)</Trans></span>
                       </div>
                     </div>
 
@@ -223,7 +225,7 @@ export default function OrdersPage() {
                           className="px-4 py-2 rounded-lg border-2 border-border hover:border-primary/30 hover:bg-accent transition-all flex items-center gap-2 font-semibold"
                         >
                           <Eye className="h-4 w-4" />
-                          View Details
+                          <Trans>View Details</Trans>
                         </button>
                         {!['delivered', 'cancelled', 'failed'].includes(order.status) && (
                           <button
@@ -231,7 +233,7 @@ export default function OrdersPage() {
                             disabled={cancelling}
                             className="px-4 py-2 rounded-lg border-2 border-destructive/50 text-destructive hover:bg-destructive/10 transition-all font-semibold disabled:opacity-50"
                           >
-                            Cancel
+                            <Trans>Cancel</Trans>
                           </button>
                         )}
                       </div>
@@ -241,7 +243,7 @@ export default function OrdersPage() {
                   {/* Order Items Preview */}
                   <div className="flex gap-3 overflow-x-auto pb-2">
                     {order.items.slice(0, 4).map((item: any, idx: number) => (
-                      <div key={idx} className="flex-shrink-0">
+                      <div key={idx} className="shrink-0">
                         <img
                           src={item.productImage || 'https://via.placeholder.com/80'}
                           alt={item.productName}
@@ -266,7 +268,7 @@ export default function OrdersPage() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-card rounded-2xl border-2 border-border max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="sticky top-0 bg-card border-b border-border p-6 flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Order Details</h2>
+                <h2 className="text-2xl font-bold"><Trans>Order Details</Trans></h2>
                 <button
                   onClick={() => setSelectedOrder(null)}
                   className="p-2 rounded-lg hover:bg-accent transition-all"
@@ -282,9 +284,9 @@ export default function OrdersPage() {
                     {getStatusIcon(selectedOrder.status)}
                     <span className="capitalize">{selectedOrder.status.replace('_', ' ')}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">Order ID: #{selectedOrder.id}</p>
+                  <p className="text-sm text-muted-foreground"><Trans>Order ID</Trans>: #{selectedOrder.id}</p>
                   <p className="text-sm text-muted-foreground">
-                    Placed on {new Date(selectedOrder.createdAt).toLocaleDateString('en-US', { 
+                    <Trans>Placed on</Trans> {new Date(selectedOrder.createdAt).toLocaleDateString('en-US', { 
                       month: 'long', 
                       day: 'numeric', 
                       year: 'numeric',
@@ -296,7 +298,7 @@ export default function OrdersPage() {
 
                 {/* Items */}
                 <div>
-                  <h3 className="font-bold text-lg mb-3">Items ({selectedOrder.totalItems})</h3>
+                  <h3 className="font-bold text-lg mb-3"><Trans>Items</Trans> ({selectedOrder.totalItems})</h3>
                   <div className="space-y-3">
                     {selectedOrder.items.map((item: any, idx: number) => (
                       <div key={idx} className="flex gap-4 p-4 rounded-xl bg-accent/50">
@@ -307,7 +309,7 @@ export default function OrdersPage() {
                         />
                         <div className="flex-1">
                           <h4 className="font-semibold mb-1">{item.productName}</h4>
-                          <p className="text-sm text-muted-foreground mb-2">Qty: {item.quantity}</p>
+                          <p className="text-sm text-muted-foreground mb-2"><Trans>Qty</Trans>: {item.quantity}</p>
                           <p className="font-bold text-primary">₹{(item.price * item.quantity).toLocaleString()}</p>
                           
                           {/* Write Review Button (only for delivered orders) */}
@@ -317,7 +319,7 @@ export default function OrdersPage() {
                               className="inline-flex items-center gap-1 mt-2 text-sm px-3 py-1.5 rounded-lg border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all font-semibold"
                             >
                               <Star className="h-3.5 w-3.5" />
-                              Write Review
+                              <Trans>Write Review</Trans>
                             </a>
                           )}
                         </div>
@@ -330,7 +332,7 @@ export default function OrdersPage() {
                 <div>
                   <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
-                    Shipping Address
+                    <Trans>Shipping Address</Trans>
                   </h3>
                   <div className="p-4 rounded-xl bg-accent/50">
                     <p className="font-semibold mb-1">{selectedOrder.shippingAddress.fullName}</p>
@@ -338,7 +340,7 @@ export default function OrdersPage() {
                     <p className="text-sm text-muted-foreground mb-1">
                       {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state} - {selectedOrder.shippingAddress.pincode}
                     </p>
-                    <p className="text-sm text-muted-foreground">Phone: {selectedOrder.shippingAddress.phone}</p>
+                    <p className="text-sm text-muted-foreground"><Trans>Phone</Trans>: {selectedOrder.shippingAddress.phone}</p>
                   </div>
                 </div>
 
@@ -346,7 +348,7 @@ export default function OrdersPage() {
                 <div>
                   <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
                     <CreditCard className="h-5 w-5" />
-                    Payment
+                    <Trans>Payment</Trans>
                   </h3>
                   <div className="p-4 rounded-xl bg-accent/50">
                     <p className="text-sm text-muted-foreground capitalize">{selectedOrder.paymentMethod.replace('_', ' ')}</p>
@@ -361,7 +363,7 @@ export default function OrdersPage() {
                     disabled={cancelling}
                     className="w-full px-4 py-3 rounded-xl border-2 border-destructive/50 text-destructive hover:bg-destructive/10 transition-all font-semibold disabled:opacity-50"
                   >
-                    {cancelling ? 'Cancelling...' : 'Cancel Order'}
+                    {cancelling ? <Trans>Cancelling...</Trans> : <Trans>Cancel Order</Trans>}
                   </button>
                 )}
               </div>

@@ -8,6 +8,7 @@ import { useAuth } from '@clerk/nextjs';
 import { ShoppingCart, Heart, Star, Check, Truck, Shield, ArrowLeft } from 'lucide-react';
 import ProductReviews from '@/components/ProductReviews';
 import { toast } from 'sonner';
+import { Trans } from '@/app/context/Translator';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -99,13 +100,13 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center pt-20">
-        <h1 className="text-4xl font-bold mb-4">Product Not Found</h1>
-        <p className="text-muted-foreground mb-6">The product you're looking for doesn't exist.</p>
+        <h1 className="text-4xl font-bold mb-4"><Trans>Product Not Found</Trans></h1>
+        <p className="text-muted-foreground mb-6"><Trans>The product you're looking for doesn't exist.</Trans></p>
         <button
           onClick={() => router.push('/shop')}
           className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
         >
-          Back to Shop
+          <Trans>Back to Shop</Trans>
         </button>
       </div>
     );
@@ -120,7 +121,7 @@ export default function ProductDetailPage() {
           className="flex items-center gap-2 mb-6 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          <Trans>Back</Trans>
         </button>
 
         <div className="grid lg:grid-cols-2 gap-12">
@@ -173,7 +174,7 @@ export default function ProductDetailPage() {
                   ))}
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {product.rating || 0} ({product.reviews || 0} reviews)
+                  {product.rating || 0} ({product.reviews || 0} <Trans>reviews</Trans>)
                 </span>
               </div>
 
@@ -191,22 +192,22 @@ export default function ProductDetailPage() {
               {product.stock > 0 ? (
                 <div className="flex items-center gap-2 text-green-600 mb-6">
                   <Check className="h-5 w-5" />
-                  <span className="font-semibold">In Stock ({product.stock} available)</span>
+                  <span className="font-semibold"><Trans>In Stock</Trans> ({product.stock} <Trans>available</Trans>)</span>
                 </div>
               ) : (
-                <div className="text-destructive font-semibold mb-6">Out of Stock</div>
+                <div className="text-destructive font-semibold mb-6"><Trans>Out of Stock</Trans></div>
               )}
             </div>
 
             {/* Description */}
             <div className="mb-8">
-              <h3 className="text-lg font-bold mb-3">Description</h3>
-              <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+              <h3 className="text-lg font-bold mb-3"><Trans>Description</Trans></h3>
+              <p className="text-muted-foreground leading-relaxed"><Trans>{product.description}</Trans></p>
             </div>
 
             {/* Quantity Selector */}
             <div className="mb-6">
-              <label className="block text-sm font-semibold mb-3">Quantity</label>
+              <label className="block text-sm font-semibold mb-3"><Trans>Quantity</Trans></label>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -234,7 +235,7 @@ export default function ProductDetailPage() {
                 className="flex-1 flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 <ShoppingCart className="h-5 w-5" />
-                {addingToCart ? 'Adding...' : 'Add to Cart'}
+                {addingToCart ? <Trans>Adding...</Trans> : <Trans>Add to Cart</Trans>}
               </button>
               
               <button
@@ -254,16 +255,16 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-3 p-4 rounded-xl bg-accent">
                 <Truck className="h-6 w-6 text-primary" />
                 <div>
-                  <div className="font-semibold">Free Delivery</div>
-                  <div className="text-sm text-muted-foreground">On orders over ₹500</div>
+                  <div className="font-semibold"><Trans>Free Delivery</Trans></div>
+                  <div className="text-sm text-muted-foreground"><Trans>On orders over ₹500</Trans></div>
                 </div>
               </div>
               
               <div className="flex items-center gap-3 p-4 rounded-xl bg-accent">
                 <Shield className="h-6 w-6 text-primary" />
                 <div>
-                  <div className="font-semibold">Secure Payment</div>
-                  <div className="text-sm text-muted-foreground">100% secure transactions</div>
+                  <div className="font-semibold"><Trans>Secure Payment</Trans></div>
+                  <div className="text-sm text-muted-foreground"><Trans>100% secure transactions</Trans></div>
                 </div>
               </div>
             </div>

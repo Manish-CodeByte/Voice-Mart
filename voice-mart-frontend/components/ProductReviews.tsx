@@ -5,6 +5,7 @@ import { useAuth } from '@clerk/nextjs';
 import { api } from '@/lib/api';
 import { Star, ThumbsUp, BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
+import { Trans } from '@/app/context/Translator';
 
 interface Review {
   id: string;
@@ -171,7 +172,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
   return (
     <div className="mt-16">
-      <h2 className="text-3xl font-bold mb-8">Customer Reviews</h2>
+      <h2 className="text-3xl font-bold mb-8"><Trans>Customer Reviews</Trans></h2>
 
       {loading ? (
         <div className="flex justify-center py-12">
@@ -197,7 +198,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                   ))}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Based on {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+                  <Trans>Based on</Trans> {reviews.length} <Trans>reviews</Trans>
                 </div>
               </div>
 
@@ -227,7 +228,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                   onClick={() => setShowReviewForm(!showReviewForm)}
                   className="w-full px-4 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all"
                 >
-                  {showReviewForm ? 'Cancel' : 'Write a Review'}
+                  {showReviewForm ? <Trans>Cancel</Trans> : <Trans>Write a Review</Trans>}
                 </button>
               )}
             </div>
@@ -238,11 +239,11 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
             {/* Review Form */}
             {showReviewForm && (
               <form onSubmit={handleSubmitReview} className="mb-8 p-6 rounded-2xl border-2 border-border bg-card">
-                <h3 className="text-xl font-bold mb-4">Write Your Review</h3>
+                <h3 className="text-xl font-bold mb-4"><Trans>Write Your Review</Trans></h3>
                 
                 {/* Star Rating */}
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold mb-2">Rating *</label>
+                  <label className="block text-sm font-semibold mb-2"><Trans>Rating *</Trans></label>
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -265,7 +266,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
                 {/* Title */}
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold mb-2">Title (optional)</label>
+                  <label className="block text-sm font-semibold mb-2"><Trans>Title (optional)</Trans></label>
                   <input
                     type="text"
                     value={title}
@@ -275,9 +276,9 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                   />
                 </div>
 
-                {/* Comment */}
+                {/* Title */}
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold mb-2">Review *</label>
+                  <label className="block text-sm font-semibold mb-2"><Trans>Review *</Trans></label>
                   <textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
@@ -293,7 +294,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                   disabled={submitting || !comment}
                   className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
-                  {submitting ? 'Submitting...' : 'Submit Review'}
+                  {submitting ? <Trans>Submitting...</Trans> : <Trans>Submit Review</Trans>}
                 </button>
               </form>
             )}
@@ -301,7 +302,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
             {/* Reviews */}
             {reviews.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <p>No reviews yet. Be the first to review this product!</p>
+                <p><Trans>No reviews yet. Be the first to review this product!</Trans></p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -310,11 +311,11 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                     {editingReview === review.id ? (
                       // Edit Form
                       <div>
-                        <h4 className="font-bold mb-4">Edit Your Review</h4>
+                        <h4 className="font-bold mb-4"><Trans>Edit Your Review</Trans></h4>
                         
                         {/* Star Rating */}
                         <div className="mb-4">
-                          <label className="block text-sm font-semibold mb-2">Rating *</label>
+                          <label className="block text-sm font-semibold mb-2"><Trans>Rating *</Trans></label>
                           <div className="flex gap-2">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <button
@@ -337,7 +338,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
                         {/* Title */}
                         <div className="mb-4">
-                          <label className="block text-sm font-semibold mb-2">Title (optional)</label>
+                          <label className="block text-sm font-semibold mb-2"><Trans>Title (optional)</Trans></label>
                           <input
                             type="text"
                             value={editTitle}
@@ -349,7 +350,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
                         {/* Comment */}
                         <div className="mb-4">
-                          <label className="block text-sm font-semibold mb-2">Review *</label>
+                          <label className="block text-sm font-semibold mb-2"><Trans>Review *</Trans></label>
                           <textarea
                             value={editComment}
                             onChange={(e) => setEditComment(e.target.value)}
@@ -366,13 +367,13 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                             disabled={!editComment}
                             className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 disabled:opacity-50 transition-all"
                           >
-                            Save Changes
+                            <Trans>Save Changes</Trans>
                           </button>
                           <button
                             onClick={() => setEditingReview(null)}
                             className="px-4 py-2 rounded-lg border-2 border-border hover:bg-accent transition-all font-semibold"
                           >
-                            Cancel
+                            <Trans>Cancel</Trans>
                           </button>
                         </div>
                       </div>
@@ -386,7 +387,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                               {review.verified && (
                                 <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 text-xs font-semibold">
                                   <BadgeCheck className="h-3 w-3" />
-                                  Verified Purchase
+                                  <Trans>Verified Purchase</Trans>
                                 </div>
                               )}
                             </div>
@@ -420,7 +421,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                           >
                             <ThumbsUp className="h-4 w-4" />
-                            Helpful ({review.helpful})
+                            <Trans>Helpful</Trans> ({review.helpful})
                           </button>
 
                           {/* Edit/Delete buttons for own reviews */}
@@ -430,13 +431,13 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                                 onClick={() => startEditingReview(review)}
                                 className="text-sm text-primary hover:underline font-semibold"
                               >
-                                Edit
+                                <Trans>Edit</Trans>
                               </button>
                               <button
                                 onClick={() => handleDeleteReview(review.id)}
                                 className="text-sm text-destructive hover:underline font-semibold"
                               >
-                                Delete
+                                <Trans>Delete</Trans>
                               </button>
                             </>
                           )}

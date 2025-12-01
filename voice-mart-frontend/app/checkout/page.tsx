@@ -8,6 +8,7 @@ import { CreditCard, Building2, Smartphone, Wallet, ArrowLeft, Check, MapPin, Bo
 import { api } from '@/lib/api';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import { toast } from 'sonner';
+import { Trans } from '@/app/context/Translator';
 
 interface SavedAddress {
   id: string;
@@ -190,13 +191,13 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center pt-20">
-        <h1 className="text-4xl font-bold mb-4">Your cart is empty</h1>
-        <p className="text-muted-foreground mb-6">Add items to your cart before checkout</p>
+        <h1 className="text-4xl font-bold mb-4"><Trans>Your cart is empty</Trans></h1>
+        <p className="text-muted-foreground mb-6"><Trans>Add items to your cart before checkout</Trans></p>
         <button
           onClick={() => router.push('/shop')}
           className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
         >
-          Continue Shopping
+          <Trans>Continue Shopping</Trans>
         </button>
       </div>
     );
@@ -212,10 +213,10 @@ export default function CheckoutPage() {
           className="flex items-center gap-2 mb-6 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          <Trans>Back</Trans>
         </button>
 
-        <h1 className="text-4xl font-bold mb-8">Checkout</h1>
+        <h1 className="text-4xl font-bold mb-8"><Trans>Checkout</Trans></h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - Forms */}
@@ -225,7 +226,7 @@ export default function CheckoutPage() {
               <div className="p-6 rounded-2xl border-2 border-border bg-card">
                 <div className="flex items-center gap-3 mb-4">
                   <BookmarkCheck className="h-5 w-5 text-primary" />
-                  <h3 className="font-bold text-lg">Saved Addresses</h3>
+                  <h3 className="font-bold text-lg"><Trans>Saved Addresses</Trans></h3>
                 </div>
                 <div className="grid gap-3">
                   {savedAddresses.map((addr) => (
@@ -244,7 +245,7 @@ export default function CheckoutPage() {
                             {addr.fullName}
                             {addr.isDefault && (
                               <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                                DEFAULT
+                                <Trans>DEFAULT</Trans>
                               </span>
                             )}
                           </div>
@@ -274,7 +275,8 @@ export default function CheckoutPage() {
                   }}
                   className="mt-3 text-sm text-primary hover:underline"
                 >
-                  + Add new address
+
+                  <Trans>+ Add new address</Trans>
                 </button>
               </div>
             )}
@@ -286,13 +288,13 @@ export default function CheckoutPage() {
                   <MapPin className="h-5 w-5" />
                 </div>
                 <h2 className="text-2xl font-bold">
-                  {selectedAddressId ? 'Edit Address' : 'Shipping Address'}
+                  {selectedAddressId ? <Trans>Edit Address</Trans> : <Trans>Shipping Address</Trans>}
                 </h2>
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Full Name *</label>
+                  <label className="block text-sm font-semibold mb-2"><Trans>Full Name *</Trans></label>
                   <input
                     type="text"
                     value={shippingAddress.fullName}
@@ -303,7 +305,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Phone Number *</label>
+                  <label className="block text-sm font-semibold mb-2"><Trans>Phone Number *</Trans></label>
                   <input
                     type="tel"
                     value={shippingAddress.phone}
@@ -314,7 +316,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold mb-2">Address *</label>
+                  <label className="block text-sm font-semibold mb-2"><Trans>Address *</Trans></label>
                   <textarea
                     value={shippingAddress.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
@@ -325,7 +327,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2">City *</label>
+                  <label className="block text-sm font-semibold mb-2"><Trans>City *</Trans></label>
                   <input
                     type="text"
                     value={shippingAddress.city}
@@ -336,7 +338,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2">State *</label>
+                  <label className="block text-sm font-semibold mb-2"><Trans>State *</Trans></label>
                   <input
                     type="text"
                     value={shippingAddress.state}
@@ -347,7 +349,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Pincode *</label>
+                  <label className="block text-sm font-semibold mb-2"><Trans>Pincode *</Trans></label>
                   <input
                     type="text"
                     value={shippingAddress.pincode}
@@ -367,7 +369,7 @@ export default function CheckoutPage() {
                     onChange={(e) => setSaveAddress(e.target.checked)}
                     className="w-5 h-5 rounded border-2 border-border text-primary focus:ring-2 focus:ring-primary"
                   />
-                  <span className="text-sm font-semibold">Save this address for future orders</span>
+                  <span className="text-sm font-semibold"><Trans>Save this address for future orders</Trans></span>
                 </label>
               )}
             </div>
@@ -378,7 +380,7 @@ export default function CheckoutPage() {
                 <div className="p-3 rounded-xl bg-primary/10 text-primary">
                   <CreditCard className="h-5 w-5" />
                 </div>
-                <h2 className="text-2xl font-bold">Payment Method</h2>
+                <h2 className="text-2xl font-bold"><Trans>Payment Method</Trans></h2>
               </div>
 
               <div className="space-y-3">
@@ -401,8 +403,8 @@ export default function CheckoutPage() {
                           <Icon className="h-5 w-5" />
                         </div>
                         <div className="flex-1">
-                          <div className="font-semibold mb-1">{method.name}</div>
-                          <div className="text-sm text-muted-foreground">{method.description}</div>
+                          <div className="font-semibold mb-1"><Trans>{method.name}</Trans></div>
+                          <div className="text-sm text-muted-foreground"><Trans>{method.description}</Trans></div>
                         </div>
                         {selectedPayment === method.id && (
                           <div className="p-1 rounded-full bg-primary text-primary-foreground">
@@ -420,7 +422,7 @@ export default function CheckoutPage() {
           {/* Right Column - Order Summary */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 p-6 rounded-2xl border-2 border-border bg-card">
-              <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
+              <h2 className="text-2xl font-bold mb-6"><Trans>Order Summary</Trans></h2>
 
               {/* Items */}
               <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
@@ -443,21 +445,21 @@ export default function CheckoutPage() {
               {/* Totals */}
               <div className="space-y-3 border-t border-border pt-4">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground"><Trans>Subtotal</Trans></span>
                   <span className="font-semibold">₹{totalPrice.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Delivery</span>
+                  <span className="text-muted-foreground"><Trans>Delivery</Trans></span>
                   <span className="font-semibold">
                     {deliveryFee === 0 ? (
-                      <span className="text-green-600">FREE</span>
+                      <span className="text-green-600"><Trans>FREE</Trans></span>
                     ) : (
                       `₹${deliveryFee}`
                     )}
                   </span>
                 </div>
                 <div className="border-t border-border pt-3 flex justify-between">
-                  <span className="font-bold text-lg">Total</span>
+                  <span className="font-bold text-lg"><Trans>Total</Trans></span>
                   <span className="font-bold text-2xl text-primary">₹{finalTotal.toLocaleString()}</span>
                 </div>
               </div>
@@ -468,11 +470,11 @@ export default function CheckoutPage() {
                 disabled={processing || !selectedPayment}
                 className="w-full mt-6 px-6 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
-                {processing ? 'Processing...' : 'Place Order'}
+                {processing ? <Trans>Processing...</Trans> : <Trans>Place Order</Trans>}
               </button>
 
               <p className="text-xs text-center text-muted-foreground mt-4">
-                By placing your order, you agree to our Terms of Service and Privacy Policy
+                <Trans>By placing your order, you agree to our Terms of Service and Privacy Policy</Trans>
               </p>
             </div>
           </div>

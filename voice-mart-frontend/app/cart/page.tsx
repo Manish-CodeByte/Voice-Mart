@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import CartItem from '@/components/CartItem';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { Trans } from '@/app/context/Translator';
 
 export default function CartPage() {
   const { user, isLoaded } = useUser();
@@ -31,8 +32,8 @@ export default function CartPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Shopping Cart</h1>
-          <p className="text-muted-foreground">{totalItems} item(s) in your cart</p>
+          <h1 className="text-4xl font-bold mb-2"><Trans>Shopping Cart</Trans></h1>
+          <p className="text-muted-foreground">{totalItems} <Trans>item(s) in your cart</Trans></p>
         </div>
 
         {items.length === 0 ? (
@@ -41,13 +42,13 @@ export default function CartPage() {
             <div className="inline-flex p-6 rounded-2xl bg-accent mb-4">
               <ShoppingBag className="h-12 w-12 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-bold mb-2">Your cart is empty</h3>
-            <p className="text-muted-foreground mb-6">Add some products to get started</p>
+            <h3 className="text-xl font-bold mb-2"><Trans>Your cart is empty</Trans></h3>
+            <p className="text-muted-foreground mb-6"><Trans>Add some products to get started</Trans></p>
             <Link
               href="/shop"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all"
             >
-              Browse Products
+              <Trans>Browse Products</Trans>
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -63,25 +64,25 @@ export default function CartPage() {
             {/* Order Summary */}
             <div className="lg:col-span-1">
               <div className="sticky top-24 p-6 rounded-2xl border-2 border-border bg-card">
-                <h2 className="text-xl font-bold mb-6">Order Summary</h2>
+                <h2 className="text-xl font-bold mb-6"><Trans>Order Summary</Trans></h2>
 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Subtotal</span>
+                    <span><Trans>Subtotal</Trans></span>
                     <span>₹{totalPrice.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Delivery Fee</span>
-                    <span>{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}</span>
+                    <span><Trans>Delivery Fee</Trans></span>
+                    <span>{deliveryFee === 0 ? <Trans>FREE</Trans> : `₹${deliveryFee}`}</span>
                   </div>
                   <div className="pt-3 border-t border-border flex justify-between text-lg font-bold">
-                    <span>Total</span>
+                    <span><Trans>Total</Trans></span>
                     <span className="text-primary">₹{finalTotal.toLocaleString()}</span>
                   </div>
                 </div>
 
                 <button className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-linear-to-r from-primary to-secondary text-primary-foreground font-semibold hover:shadow-xl hover:shadow-primary/20 transition-all mb-3">
-                  Proceed to Checkout
+                  <Trans>Proceed to Checkout</Trans>
                   <ArrowRight className="h-5 w-5" />
                 </button>
 
@@ -89,7 +90,7 @@ export default function CartPage() {
                   href="/shop"
                   className="block text-center text-sm text-primary hover:underline"
                 >
-                  Continue Shopping
+                  <Trans>Continue Shopping</Trans>
                 </Link>
               </div>
             </div>

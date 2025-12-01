@@ -46,7 +46,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-64 bg-card border-r border-border z-50">
         <div className="p-6">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-1">
+          <h1 className="text-2xl font-bold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent mb-1">
             Voice Mart
           </h1>
           <p className="text-sm text-muted-foreground">Admin Panel</p>

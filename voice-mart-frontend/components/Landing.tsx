@@ -13,7 +13,7 @@ const Landing = () => {
       <section className="relative pt-32 pb-24 px-6 overflow-hidden">
         {/* Enhanced background with grid pattern */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgb(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--border))_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgb(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--border))_1px,transparent_1px)] bg-size-[4rem_4rem] opacity-20" />
           <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
@@ -26,7 +26,7 @@ const Landing = () => {
             className="text-center space-y-8"
           >
             {/* Enhanced Badge with more detail */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-gradient-to-r from-primary/10 to-secondary/10 text-sm font-medium backdrop-blur-sm shadow-lg shadow-primary/10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-linear-to-r from-primary/10 to-secondary/10 text-sm font-medium backdrop-blur-sm shadow-lg shadow-primary/10">
               <div className="relative">
                 <Sparkles className="h-4 w-4 text-primary" />
                 <div className="absolute inset-0 bg-primary/20 blur-md -z-10" />
@@ -238,7 +238,7 @@ const Landing = () => {
       {/* Final CTA - Enhanced */}
       <section className="py-32 px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-secondary/5" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgb(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--border))_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgb(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--border))_1px,transparent_1px)] bg-size-[4rem_4rem] opacity-20" />
         
         <div className="max-w-4xl mx-auto text-center relative">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/10 text-sm font-medium mb-8">
