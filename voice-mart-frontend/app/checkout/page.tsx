@@ -5,6 +5,8 @@ import { useAuth, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { CreditCard, Building2, Smartphone, Wallet, ArrowLeft, Check, MapPin, BookmarkCheck, Shield } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import CustomSelect from '@/components/CustomSelect';
 import { api } from '@/lib/api';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import { toast } from 'sonner';
@@ -124,6 +126,7 @@ export default function CheckoutPage() {
     expiry: '12/28',
     cvv: '123'
   });
+  const [isFlipped, setIsFlipped] = useState(false);
   const [selectedBank, setSelectedBank] = useState('');
 
   const paymentMethods = [
@@ -154,6 +157,18 @@ export default function CheckoutPage() {
     if (selectedPayment === 'card') {
       if (!cardDetails.number || !cardDetails.name || !cardDetails.expiry || !cardDetails.cvv) {
         toast.error('Please fill in all card details');
+        return;
+      }
+      
+      const testCardNumber = process.env.NEXT_PUBLIC_TEST_CARD_NUMBER;
+      const testCardCvv = process.env.NEXT_PUBLIC_TEST_CARD_CVV;
+
+      if (testCardNumber && cardDetails.number.replace(/\s/g, '') !== testCardNumber) {
+        toast.error('Invalid Card Number');
+        return;
+      }
+      if (testCardCvv && cardDetails.cvv !== testCardCvv) {
+        toast.error('Invalid CVV');
         return;
       }
     }
@@ -461,69 +476,132 @@ export default function CheckoutPage() {
                           )}
 
                           {method.id === 'card' && (
-                            <div className="space-y-4">
-                              {/* Visual Card */}
-                              <div className="relative h-48 rounded-xl bg-linear-to-br from-violet-600 to-indigo-600 p-6 text-white shadow-lg overflow-hidden">
-                                <div className="absolute top-0 right-0 p-6 opacity-20">
-                                  <CreditCard className="h-24 w-24" />
-                                </div>
-                                <div className="relative h-full flex flex-col justify-between">
-                                  <div className="flex justify-between items-start">
-                                    <div className="text-xs opacity-75">Credit/Debit</div>
-                                    <div className="font-bold italic text-lg">VISA</div>
-                                  </div>
-                                  <div className="space-y-4">
-                                    <div className="font-mono text-xl tracking-widest">{cardDetails.number}</div>
+                            <div className="space-y-6">
+                              {/* Flip Card Container */}
+                              <div className="perspective-1000 w-full h-56 relative cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
+                                <motion.div
+                                  className="w-full h-full relative preserve-3d"
+                                  initial={false}
+                                  animate={{ rotateY: isFlipped ? 180 : 0 }}
+                                  transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+                                  style={{ transformStyle: 'preserve-3d' }}
+                                >
+                                  {/* Front Side */}
+                                  <div className="absolute inset-0 backface-hidden rounded-2xl bg-linear-to-br from-[#1a1a1a] to-[#2a2a2a] p-6 text-white shadow-xl border border-white/10 overflow-hidden">
+                                    {/* Chip & Contactless */}
+                                    <div className="flex justify-between items-start mb-8">
+                                      <div className="w-12 h-9 rounded bg-linear-to-br from-yellow-200 to-yellow-500 opacity-90" />
+                                      <div className="flex flex-col items-end">
+                                        <div className="text-xs font-bold opacity-50 mb-1">CREDIT</div>
+                                        <CreditCard className="h-6 w-6 opacity-80" />
+                                      </div>
+                                    </div>
+
+                                    {/* Card Number */}
+                                    <div className="mb-6">
+                                      <div className="font-mono text-2xl tracking-widest drop-shadow-md">
+                                        {cardDetails.number || '•••• •••• •••• ••••'}
+                                      </div>
+                                    </div>
+
+                                    {/* Name & Expiry */}
                                     <div className="flex justify-between items-end">
                                       <div>
-                                        <div className="text-[10px] opacity-75 uppercase">Card Holder</div>
-                                        <div className="font-medium tracking-wide uppercase">{cardDetails.name}</div>
+                                        <div className="text-[10px] opacity-60 uppercase tracking-wider mb-1">Card Holder</div>
+                                        <div className="font-medium tracking-wide uppercase text-sm">
+                                          {cardDetails.name || 'YOUR NAME'}
+                                        </div>
                                       </div>
-                                      <div>
-                                        <div className="text-[10px] opacity-75 uppercase">Expires</div>
-                                        <div className="font-medium tracking-wide">{cardDetails.expiry}</div>
+                                      <div className="text-right">
+                                        <div className="text-[10px] opacity-60 uppercase tracking-wider mb-1">Expires</div>
+                                        <div className="font-medium tracking-wide text-sm">
+                                          {cardDetails.expiry || 'MM/YY'}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Shine Effect */}
+                                    <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent pointer-events-none" />
+                                  </div>
+
+                                  {/* Back Side */}
+                                  <div 
+                                    className="absolute inset-0 backface-hidden rounded-2xl bg-linear-to-br from-[#2a2a2a] to-[#1a1a1a] text-white shadow-xl border border-white/10 overflow-hidden"
+                                    style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden' }}
+                                  >
+                                    <div className="w-full h-12 bg-black mt-6 opacity-90" />
+                                    <div className="p-6">
+                                      <div className="flex flex-col items-end">
+                                        <div className="text-[10px] uppercase opacity-70 mb-1 mr-1">CVV</div>
+                                        <div className="w-full h-10 bg-white text-black font-mono flex items-center justify-end px-3 rounded tracking-widest font-bold">
+                                          {cardDetails.cvv || '•••'}
+                                        </div>
+                                      </div>
+                                      <div className="mt-8 flex justify-between items-center opacity-50">
+                                        <div className="text-xs">Service Code: 404</div>
+                                        <Shield className="h-8 w-8" />
                                       </div>
                                     </div>
                                   </div>
-                                </div>
+                                </motion.div>
                               </div>
 
                               {/* Card Form */}
-                              <div className="grid grid-cols-2 gap-3">
+                              <div className="grid grid-cols-2 gap-4">
                                 <div className="col-span-2">
+                                  <label className="block text-xs font-semibold mb-1.5 ml-1">Card Number</label>
                                   <input
                                     type="text"
-                                    placeholder="Card Number"
+                                    placeholder="0000 0000 0000 0000"
+                                    maxLength={19}
                                     value={cardDetails.number}
-                                    onChange={(e) => setCardDetails({...cardDetails, number: e.target.value})}
-                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:border-primary outline-none"
+                                    onChange={(e) => {
+                                      let val = e.target.value.replace(/\D/g, '');
+                                      val = val.replace(/(.{4})/g, '$1 ').trim();
+                                      setCardDetails({...cardDetails, number: val});
+                                    }}
+                                    onFocus={() => setIsFlipped(false)}
+                                    className="w-full px-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary outline-none transition-all font-mono"
                                   />
                                 </div>
                                 <div className="col-span-2">
+                                  <label className="block text-xs font-semibold mb-1.5 ml-1">Card Holder Name</label>
                                   <input
                                     type="text"
-                                    placeholder="Card Holder Name"
+                                    placeholder="JOHN DOE"
                                     value={cardDetails.name}
-                                    onChange={(e) => setCardDetails({...cardDetails, name: e.target.value})}
-                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:border-primary outline-none"
+                                    onChange={(e) => setCardDetails({...cardDetails, name: e.target.value.toUpperCase()})}
+                                    onFocus={() => setIsFlipped(false)}
+                                    className="w-full px-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary outline-none transition-all"
                                   />
                                 </div>
                                 <div>
+                                  <label className="block text-xs font-semibold mb-1.5 ml-1">Expiry Date</label>
                                   <input
                                     type="text"
                                     placeholder="MM/YY"
+                                    maxLength={5}
                                     value={cardDetails.expiry}
-                                    onChange={(e) => setCardDetails({...cardDetails, expiry: e.target.value})}
-                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:border-primary outline-none"
+                                    onChange={(e) => {
+                                      let val = e.target.value.replace(/\D/g, '');
+                                      if (val.length >= 2) val = val.slice(0, 2) + '/' + val.slice(2, 4);
+                                      setCardDetails({...cardDetails, expiry: val});
+                                    }}
+                                    onFocus={() => setIsFlipped(false)}
+                                    className="w-full px-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary outline-none transition-all text-center"
                                   />
                                 </div>
                                 <div>
+                                  <label className="block text-xs font-semibold mb-1.5 ml-1">CVV / CVC</label>
                                   <input
-                                    type="text"
-                                    placeholder="CVV"
+                                    type="password"
+                                    placeholder="123"
+                                    maxLength={4}
                                     value={cardDetails.cvv}
-                                    onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value})}
-                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:border-primary outline-none"
+                                    onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value.replace(/\D/g, '')})}
+                                    onFocus={() => setIsFlipped(true)}
+                                    onBlur={() => setIsFlipped(false)}
+                                    className="w-full px-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary outline-none transition-all text-center tracking-widest"
                                   />
                                 </div>
                               </div>
@@ -533,16 +611,12 @@ export default function CheckoutPage() {
                           {method.id === 'netbanking' && (
                             <div className="space-y-3">
                               <label className="text-sm font-medium"><Trans>Select your Bank</Trans></label>
-                              <select
+                              <CustomSelect
                                 value={selectedBank}
-                                onChange={(e) => setSelectedBank(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:border-primary outline-none"
-                              >
-                                <option value="">Select Bank</option>
-                                {banks.map(bank => (
-                                  <option key={bank} value={bank}>{bank}</option>
-                                ))}
-                              </select>
+                                onChange={setSelectedBank}
+                                options={banks.map(bank => ({ value: bank, label: bank }))}
+                                placeholder="Select Bank"
+                              />
                             </div>
                           )}
 
