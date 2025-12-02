@@ -4,7 +4,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { CreditCard, Building2, Smartphone, Wallet, ArrowLeft, Check, MapPin, BookmarkCheck } from 'lucide-react';
+import { CreditCard, Building2, Smartphone, Wallet, ArrowLeft, Check, MapPin, BookmarkCheck, Shield } from 'lucide-react';
 import { api } from '@/lib/api';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import { toast } from 'sonner';
@@ -118,12 +118,24 @@ export default function CheckoutPage() {
   const deliveryFee = totalPrice > 0 && totalPrice < 500 ? 50 : 0;
   const finalTotal = totalPrice + deliveryFee;
 
+  const [cardDetails, setCardDetails] = useState({
+    number: '4242 4242 4242 4242',
+    name: user?.fullName || 'JOHN DOE',
+    expiry: '12/28',
+    cvv: '123'
+  });
+  const [selectedBank, setSelectedBank] = useState('');
+
   const paymentMethods = [
-    { id: 'upi', name: 'UPI', icon: Smartphone, description: 'Google Pay, PhonePe, Paytm' },
-    { id: 'card', name: 'Credit/Debit Card', icon: CreditCard, description: 'Visa, Mastercard, RuPay' },
+    { id: 'razorpay', name: 'Razorpay Secure', icon: Shield, description: 'Cards, UPI, NetBanking' },
+    { id: 'upi', name: 'UPI Apps', icon: Smartphone, description: 'Google Pay, PhonePe, Paytm' },
+    { id: 'card', name: 'Credit / Debit Card', icon: CreditCard, description: 'Visa, Mastercard, RuPay' },
     { id: 'netbanking', name: 'Net Banking', icon: Building2, description: 'All major banks' },
-    { id: 'wallet', name: 'Wallet', icon: Wallet, description: 'Paytm, Amazon Pay' },
     { id: 'cod', name: 'Cash on Delivery', icon: MapPin, description: 'Pay when you receive' },
+  ];
+
+  const banks = [
+    'HDFC Bank', 'SBI', 'ICICI Bank', 'Axis Bank', 'Kotak Mahindra Bank', 'Punjab National Bank'
   ];
 
   const handlePlaceOrder = async () => {
@@ -135,6 +147,18 @@ export default function CheckoutPage() {
     if (!shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.address || 
         !shippingAddress.city || !shippingAddress.state || !shippingAddress.pincode) {
       toast.error('Please fill in all shipping details');
+      return;
+    }
+
+    // Payment Validation
+    if (selectedPayment === 'card') {
+      if (!cardDetails.number || !cardDetails.name || !cardDetails.expiry || !cardDetails.cvv) {
+        toast.error('Please fill in all card details');
+        return;
+      }
+    }
+    if (selectedPayment === 'netbanking' && !selectedBank) {
+      toast.error('Please select a bank');
       return;
     }
 
@@ -386,19 +410,18 @@ export default function CheckoutPage() {
               <div className="space-y-3">
                 {paymentMethods.map((method) => {
                   const Icon = method.icon;
+                  const isSelected = selectedPayment === method.id;
+                  
                   return (
-                    <button
-                      key={method.id}
-                      onClick={() => setSelectedPayment(method.id)}
-                      className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
-                        selectedPayment === method.id
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
+                    <div key={method.id} className={`rounded-xl border-2 transition-all overflow-hidden ${
+                      isSelected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                    }`}>
+                      <button
+                        onClick={() => setSelectedPayment(method.id)}
+                        className="w-full p-4 text-left flex items-center gap-4"
+                      >
                         <div className={`p-3 rounded-lg ${
-                          selectedPayment === method.id ? 'bg-primary text-primary-foreground' : 'bg-accent'
+                          isSelected ? 'bg-primary text-primary-foreground' : 'bg-accent'
                         }`}>
                           <Icon className="h-5 w-5" />
                         </div>
@@ -406,13 +429,131 @@ export default function CheckoutPage() {
                           <div className="font-semibold mb-1"><Trans>{method.name}</Trans></div>
                           <div className="text-sm text-muted-foreground"><Trans>{method.description}</Trans></div>
                         </div>
-                        {selectedPayment === method.id && (
+                        {isSelected && (
                           <div className="p-1 rounded-full bg-primary text-primary-foreground">
                             <Check className="h-4 w-4" />
                           </div>
                         )}
-                      </div>
-                    </button>
+                      </button>
+
+                      {/* Dynamic Payment Details */}
+                      {isSelected && (
+                        <div className="px-4 pb-4 pt-0 animate-in slide-in-from-top-2">
+                          <div className="h-px w-full bg-border mb-4" />
+                          
+                          {method.id === 'razorpay' && (
+                            <div className="text-sm text-muted-foreground">
+                              <Trans>You will be redirected to Razorpay's secure payment gateway to complete your transaction.</Trans>
+                            </div>
+                          )}
+
+                          {method.id === 'upi' && (
+                            <div className="space-y-3">
+                              <p className="text-sm text-muted-foreground"><Trans>Pay using any UPI app on your phone</Trans></p>
+                              <a 
+                                href={`upi://pay?pa=generic@upi&pn=VoiceMart&am=${finalTotal}&cu=INR`}
+                                className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-[#2b2b2b] text-white font-medium hover:bg-black transition-colors"
+                              >
+                                <Smartphone className="h-4 w-4" />
+                                <Trans>Open UPI App</Trans>
+                              </a>
+                            </div>
+                          )}
+
+                          {method.id === 'card' && (
+                            <div className="space-y-4">
+                              {/* Visual Card */}
+                              <div className="relative h-48 rounded-xl bg-linear-to-br from-violet-600 to-indigo-600 p-6 text-white shadow-lg overflow-hidden">
+                                <div className="absolute top-0 right-0 p-6 opacity-20">
+                                  <CreditCard className="h-24 w-24" />
+                                </div>
+                                <div className="relative h-full flex flex-col justify-between">
+                                  <div className="flex justify-between items-start">
+                                    <div className="text-xs opacity-75">Credit/Debit</div>
+                                    <div className="font-bold italic text-lg">VISA</div>
+                                  </div>
+                                  <div className="space-y-4">
+                                    <div className="font-mono text-xl tracking-widest">{cardDetails.number}</div>
+                                    <div className="flex justify-between items-end">
+                                      <div>
+                                        <div className="text-[10px] opacity-75 uppercase">Card Holder</div>
+                                        <div className="font-medium tracking-wide uppercase">{cardDetails.name}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-[10px] opacity-75 uppercase">Expires</div>
+                                        <div className="font-medium tracking-wide">{cardDetails.expiry}</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Card Form */}
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="col-span-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Card Number"
+                                    value={cardDetails.number}
+                                    onChange={(e) => setCardDetails({...cardDetails, number: e.target.value})}
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:border-primary outline-none"
+                                  />
+                                </div>
+                                <div className="col-span-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Card Holder Name"
+                                    value={cardDetails.name}
+                                    onChange={(e) => setCardDetails({...cardDetails, name: e.target.value})}
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:border-primary outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <input
+                                    type="text"
+                                    placeholder="MM/YY"
+                                    value={cardDetails.expiry}
+                                    onChange={(e) => setCardDetails({...cardDetails, expiry: e.target.value})}
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:border-primary outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <input
+                                    type="text"
+                                    placeholder="CVV"
+                                    value={cardDetails.cvv}
+                                    onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value})}
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:border-primary outline-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {method.id === 'netbanking' && (
+                            <div className="space-y-3">
+                              <label className="text-sm font-medium"><Trans>Select your Bank</Trans></label>
+                              <select
+                                value={selectedBank}
+                                onChange={(e) => setSelectedBank(e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:border-primary outline-none"
+                              >
+                                <option value="">Select Bank</option>
+                                {banks.map(bank => (
+                                  <option key={bank} value={bank}>{bank}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          {method.id === 'cod' && (
+                            <div className="text-sm text-muted-foreground">
+                              <Trans>Pay with cash when your order is delivered.</Trans>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
