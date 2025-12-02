@@ -15,7 +15,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Missing "text" or "to" field' }, { status: 400 });
     }
 
-    // 1. Call the translation API (Primary)
+    // 1. Special handling for Tulu (tcy) - Force fallback
+    // Google Translate API often returns incorrect results for Tulu, so we use our manual dictionary.
+    if (to === 'tcy') {
+        const fallback = getFallbackTranslation(text, to);
+        return NextResponse.json({ 
+            translatedText: fallback || text, 
+            isFallback: true 
+        });
+    }
+
+    // 2. Call the translation API (Primary)
     try {
         // @ts-ignore
         const result = await translate(text, { to, client: 'gtx' });

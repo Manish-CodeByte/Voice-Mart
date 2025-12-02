@@ -19,7 +19,8 @@ export const Trans = ({ children, onTranslated }: TransProps) => {
   });
 
   useEffect(() => {
-    const cacheKey = `${lang}:${children}`;
+    // v2: Invalidate old cache (especially for Tulu fixes)
+    const cacheKey = `v2:${lang}:${children}`;
     const cachedTranslation = sessionStorage.getItem(cacheKey);
 
     const updateText = (text: string) => {

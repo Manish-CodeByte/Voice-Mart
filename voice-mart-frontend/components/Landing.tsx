@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Mic, Camera, Globe, Zap, ArrowRight, Check, Sparkles, ShoppingBag, Star, TrendingUp, Users, Shield } from 'lucide-react';
 import { Trans } from '@/app/context/Translator';
+import { useUser } from '@clerk/nextjs';
 
 const Landing = () => {
+  const { isSignedIn } = useUser();
   return (
     <div className="min-h-screen bg-background">
       
@@ -252,14 +254,16 @@ const Landing = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/sign-up"
-              className="group relative inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-linear-to-r from-primary to-secondary text-primary-foreground font-semibold hover:shadow-2xl hover:shadow-primary/30 transition-all overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-              <span className="relative"><Trans>Get Started Free</Trans></span>
-              <ArrowRight className="relative h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            {!isSignedIn && (
+              <Link
+                href="/sign-up"
+                className="group relative inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-linear-to-r from-primary to-secondary text-primary-foreground font-semibold hover:shadow-2xl hover:shadow-primary/30 transition-all overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                <span className="relative"><Trans>Get Started Free</Trans></span>
+                <ArrowRight className="relative h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            )}
             <Link
               href="/learn-more"
               className="inline-flex items-center gap-2 px-10 py-4 rounded-xl border-2 border-primary/30 bg-card hover:bg-primary/5 transition-all font-medium"
