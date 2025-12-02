@@ -56,9 +56,6 @@ export const verifyPayment = async (req: Request, res: Response) => {
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-      // Payment is verified
-      // Here you would typically update the order status in your database
-      
       res.status(200).json({
         success: true,
         message: 'Payment verified successfully',
