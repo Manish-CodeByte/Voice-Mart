@@ -21,6 +21,7 @@ import userPreferencesRoutes from './routes/userPreferences.js';
 import reviewsRoutes from './routes/reviews.js';
 import authRoutes from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -106,6 +107,7 @@ app.use('/api/addresses', addressesRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/preferences', userPreferencesRoutes);
 app.use('/api/reviews', reviewsRoutes);
+app.use('/api/payment', paymentRoutes);
 app.use('/api/auth', authRoutes);
 
 // 404 handler

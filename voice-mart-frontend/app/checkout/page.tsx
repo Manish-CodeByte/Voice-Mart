@@ -198,6 +198,89 @@ export default function CheckoutPage() {
       // Sync cart to backend before placing order
       await syncCart();
 
+      if (selectedPayment === 'razorpay') {
+        // 1. Create Order
+        const orderRes = await api.createPaymentOrder(finalTotal, token);
+        if (!orderRes.success || !orderRes.data) {
+          console.error(orderRes.message)
+          toast.error(orderRes.message || 'Failed to create payment order');
+          setProcessing(false);
+          return;
+        }
+
+        const { order } = orderRes.data as any;
+
+        // 2. Load Razorpay Script
+        const loadScript = (src: string) => {
+          return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+          });
+        };
+
+        const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+
+        if (!res) {
+          toast.error('Razorpay SDK failed to load');
+          setProcessing(false);
+          return;
+        }
+
+        // 3. Open Razorpay Modal
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: order.amount,
+          currency: order.currency,
+          name: 'Voice Mart',
+          description: 'Order Payment',
+          order_id: order.id,
+          handler: async function (response: any) {
+            // 4. Verify Payment
+            try {
+              const verifyRes = await api.verifyPayment(response, token);
+              if (verifyRes.success) {
+                // 5. Place Order in DB
+                await createOrderInDb(token);
+              } else {
+                toast.error('Payment verification failed');
+                setProcessing(false);
+              }
+            } catch (error) {
+              console.error('Payment verification error:', error);
+              toast.error('Payment verification failed');
+              setProcessing(false);
+            }
+          },
+          prefill: {
+            name: shippingAddress.fullName,
+            contact: shippingAddress.phone,
+            email: user?.primaryEmailAddress?.emailAddress,
+          },
+          theme: {
+            color: '#3b82f6',
+          },
+        };
+
+        const paymentObject = new (window as any).Razorpay(options);
+        paymentObject.open();
+        
+      } else {
+        // Standard Order Placement (COD, etc.)
+        await createOrderInDb(token);
+      }
+
+    } catch (error) {
+      console.error('Error initiating order:', error);
+      toast.error('Failed to initiate order. Please try again.');
+      setProcessing(false);
+    }
+  };
+
+  const createOrderInDb = async (token: string) => {
+    try {
       const orderData = {
         items: items.map(item => ({
           productId: item.productId,
@@ -214,7 +297,7 @@ export default function CheckoutPage() {
       
       if (response.success) {
         await clearCart();
-        localStorage.removeItem('checkout_data'); // Clear saved data on success
+        localStorage.removeItem('checkout_data');
         router.push('/orders');
       } else {
         toast.error('Failed to place order. Please try again.');
@@ -226,6 +309,7 @@ export default function CheckoutPage() {
       setProcessing(false);
     }
   };
+
 
   if (items.length === 0) {
     return (

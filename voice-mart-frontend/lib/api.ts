@@ -343,6 +343,22 @@ export class ApiClient {
       body: JSON.stringify(data),
     });
   }
+  // Payment
+  async createPaymentOrder(amount: number, token: string) {
+    return this.request('/payment/create-order', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  async verifyPayment(data: any, token: string) {
+    return this.request('/payment/verify', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const api = new ApiClient();
