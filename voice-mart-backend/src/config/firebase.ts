@@ -39,4 +39,7 @@ try {
 // if credentials are missing. But we'll try to initialize a default app if possible/needed,
 // or just let it fail with a clear message when accessed.
 export const db: admin.firestore.Firestore = admin.apps.length ? admin.firestore() : {} as admin.firestore.Firestore;
+if (admin.apps.length) {
+  db.settings({ ignoreUndefinedProperties: true });
+}
 export const auth: admin.auth.Auth = admin.apps.length ? admin.auth() : {} as admin.auth.Auth;

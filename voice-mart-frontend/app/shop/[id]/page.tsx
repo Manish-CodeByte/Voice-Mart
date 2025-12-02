@@ -13,7 +13,7 @@ import { Trans } from '@/app/context/Translator';
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { addToCart, getItemQuantity, updateQuantity } = useCart();
+  const { addToCart, getItemQuantity, updateQuantity, openCart } = useCart();
   const { getToken } = useAuth();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -232,7 +232,7 @@ export default function ProductDetailPage() {
                   </div>
                   
                   <button 
-                    onClick={() => router.push('/cart')}
+                    onClick={openCart}
                     className="flex-1 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors"
                   >
                     <Trans>Go to Cart</Trans>

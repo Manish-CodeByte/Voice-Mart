@@ -18,8 +18,23 @@ export const getProducts = async (req: Request, res: Response) => {
     const products = await productService.getAllProducts(query);
     res.json({ success: true, data: products });
   } catch (error) {
-    logger.error('Error in getProducts:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch products' });
+  }
+};
+
+export const getSearchSuggestions = async (req: Request, res: Response) => {
+  try {
+    const query = req.query.q as string;
+    if (!query) {
+      res.json({ success: true, data: [] });
+      return;
+    }
+
+    const suggestions = await productService.searchProducts(query);
+    res.json({ success: true, data: suggestions });
+  } catch (error) {
+    logger.error('Error in getSearchSuggestions:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch suggestions' });
   }
 };
 

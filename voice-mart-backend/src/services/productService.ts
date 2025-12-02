@@ -62,6 +62,31 @@ class ProductService {
     }
   }
 
+  async searchProducts(query: string, limit: number = 5): Promise<Product[]> {
+    try {
+      // Note: Firestore doesn't support native full-text search.
+      // For a production app, use Algolia or ElasticSearch.
+      // Here we'll fetch all products (cached if possible) and filter in memory
+      // or use a simple prefix search if the dataset is small.
+      
+      const snapshot = await this.collection.get();
+      const allProducts = snapshot.docs.map((doc: any) => ({
+        id: doc.id,
+        ...doc.data(),
+      } as Product));
+
+      const searchLower = query.toLowerCase();
+      const suggestions = allProducts
+        .filter(p => p.name.toLowerCase().includes(searchLower))
+        .slice(0, limit);
+
+      return suggestions;
+    } catch (error) {
+      logger.error('Error searching products:', error);
+      throw error;
+    }
+  }
+
   async getProductById(id: string): Promise<Product | null> {
     try {
       const doc = await this.collection.doc(id).get();

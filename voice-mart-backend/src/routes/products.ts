@@ -5,6 +5,7 @@ const router = Router();
 
 // Public routes
 router.get('/', productController.getProducts);
+router.get('/search/suggestions', productController.getSearchSuggestions);
 router.get('/:id', productController.getProduct);
 
 // Admin routes (add auth middleware later)

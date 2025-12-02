@@ -77,6 +77,10 @@ export class ApiClient {
     return this.request(`/products/${id}`);
   }
 
+  async getSearchSuggestions(query: string) {
+    return this.request(`/products/search/suggestions?q=${encodeURIComponent(query)}`);
+  }
+
   // Cart
   async getCart(token: string) {
     return this.request('/cart', {

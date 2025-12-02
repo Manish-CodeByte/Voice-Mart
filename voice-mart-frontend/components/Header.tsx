@@ -8,14 +8,14 @@ import LanguageSwitcher from './LanguageSwitcher';
 import UserMenu from './UserMenu';
 import { useCart } from '@/contexts/CartContext';
 import CartDrawer from './CartDrawer';
+import Search from './Search';
 import { useState } from 'react';
 
 import { usePathname } from 'next/navigation';
 import { Trans } from '@/app/context/Translator';
 
 export default function Header() {
-    const { totalItems } = useCart();
-    const [isCartOpen, setIsCartOpen] = useState(false);
+    const { totalItems, isCartOpen, openCart, closeCart } = useCart();
     const pathname = usePathname();
 
     if (pathname?.startsWith('/admin')) return null;
@@ -40,13 +40,18 @@ export default function Header() {
                             </span>
                         </Link>
 
+                        {/* Search Bar */}
+                        <div className="hidden md:flex flex-1 max-w-md mx-8">
+                            <Search />
+                        </div>
+
                         {/* Navigation */}
                         <nav className="flex items-center gap-2">
                             <LanguageSwitcher />
                             <DarkModeToggle />
                             
                             <button
-                                onClick={() => setIsCartOpen(true)}
+                                onClick={openCart}
                                 className="relative p-2.5 rounded-lg hover:bg-accent transition-colors group"
                             >
                                 <ShoppingCart className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -75,7 +80,7 @@ export default function Header() {
             </header>
 
             {/* Cart Drawer */}
-            <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+            <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
         </>
     );
 }
