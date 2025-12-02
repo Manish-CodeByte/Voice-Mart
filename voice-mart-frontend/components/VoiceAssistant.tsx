@@ -139,6 +139,7 @@ export default function VoiceAssistant() {
         if (result.audioResponse) {
           playAudio(result.audioResponse);
         } else if (result.responseText) {
+            speakFallback(result.responseText);
             toast.success(result.responseText);
         }
 
@@ -154,6 +155,35 @@ export default function VoiceAssistant() {
       setIsProcessing(false);
     }
   };
+
+  const speakFallback = (text: string) => {
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      // Try to find a good voice
+      const voices = window.speechSynthesis.getVoices();
+      // Prefer Indian English female voice if available, else any English
+      const preferredVoice = voices.find(v => v.lang.includes('IN') && v.name.includes('Female')) 
+                          || voices.find(v => v.lang.includes('IN'))
+                          || voices.find(v => v.lang.includes('en'));
+                          
+      if (preferredVoice) utterance.voice = preferredVoice;
+      
+      utterance.onstart = () => setIsPlaying(true);
+      utterance.onend = () => setIsPlaying(false);
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  useEffect(() => {
+    if (isVoiceEnabled) {
+        // Greet the user
+        speakFallback("Hello! I am your voice assistant. How can I help you today?");
+    }
+  }, [isVoiceEnabled]);
 
   const playAudio = (base64Audio: string) => {
     if (audioRef.current) {

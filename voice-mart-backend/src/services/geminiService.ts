@@ -125,21 +125,48 @@ User Input: "${text}"
 Return ONLY valid JSON.`;
 
         let responseText;
+        const maxRetries = 1; // Reduced from 3 to 1 for faster fallback
+        let attempt = 0;
         
-        try {
-            // Try primary model (Gemini 2.0 Flash)
-            const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            responseText = response.text();
-        } catch (error: any) {
-            logger.warn(`Gemini 2.0 Flash failed (${error.message}), falling back to Gemini Pro`);
-            
-            // Fallback to Gemini Pro
-            const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-pro' });
-            const result = await fallbackModel.generateContent(prompt);
-            const response = await result.response;
-            responseText = response.text();
+        // Only use gemini-2.0-flash-exp with retry logic
+        while (attempt < maxRetries) {
+            try {
+                attempt++;
+                logger.info(`🔄 Attempt ${attempt}/${maxRetries} with gemini-2.0-flash-exp`);
+                
+                const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                responseText = response.text();
+                
+                logger.info(`✅ Success with gemini-2.0-flash-exp`);
+                break; // Success! Exit loop
+                
+            } catch (error: any) {
+                logger.warn(`⚠️ Attempt ${attempt} failed: ${error.message}`);
+                
+                // Check if it's a rate limit error (429)
+                if (error.message.includes('429') || error.message.includes('quota')) {
+                    // Extract retry delay from error message
+                    const retryMatch = error.message.match(/retry in ([\d.]+)s/i);
+                    let retryDelay = retryMatch ? parseFloat(retryMatch[1]) * 1000 : 2000 * attempt;
+                    
+                    // Cap at 5 seconds max (don't wait 60+ seconds)
+                    retryDelay = Math.min(retryDelay, 5000);
+                    
+                    if (attempt < maxRetries) {
+                        logger.info(`⏳ Rate limited. Waiting ${Math.ceil(retryDelay/1000)}s before retry...`);
+                        await new Promise(resolve => setTimeout(resolve, retryDelay));
+                    } else {
+                        logger.error('❌ Max retries reached. Falling back to regex.');
+                        return fallbackToRegex(text);
+                    }
+                } else {
+                    // Non-rate-limit error, fallback immediately
+                    logger.error(`❌ Non-recoverable error: ${error.message}`);
+                    return fallbackToRegex(text);
+                }
+            }
         }
 
         logger.info(`✅ Gemini response: ${responseText}`);
@@ -165,27 +192,92 @@ Return ONLY valid JSON.`;
 
         } catch (parseError) {
             logger.error('❌ Failed to parse Gemini response:', parseError);
-            return {
-                success: false,
-                transcript: text,
-                action: 'unknown',
-                item: '',
-                error: 'Failed to parse response',
-                timestamp: new Date().toISOString()
-            };
+            return fallbackToRegex(text);
         }
 
     } catch (error: any) {
         logger.error('❌ Error in processTextCommand:', error);
-        return {
-            success: false,
-            transcript: text,
-            action: 'unknown',
-            item: '',
-            error: error.message,
-            timestamp: new Date().toISOString()
-        };
+        return fallbackToRegex(text);
     }
+}
+
+/**
+ * Rule-Based Fallback for when AI fails
+ * Uses Regex to match common intents
+ */
+function fallbackToRegex(text: string): VoiceCommandResult {
+    const lower = text.toLowerCase();
+    let action = 'unknown';
+    let item = '';
+    let responseText = "I'm sorry, I didn't understand that.";
+
+    // 1. Navigation
+    if (lower.includes('cart') && (lower.includes('open') || lower.includes('go') || lower.includes('show'))) {
+        action = 'navigate';
+        item = 'cart';
+        responseText = "Opening your cart.";
+    } else if (lower.includes('home') || lower.includes('main')) {
+        action = 'navigate';
+        item = 'home';
+        responseText = "Going to home page.";
+    } else if (lower.includes('wishlist')) {
+        action = 'navigate';
+        item = 'wishlist';
+        responseText = "Opening your wishlist.";
+    } else if (lower.includes('order')) {
+        action = 'navigate';
+        item = 'orders';
+        responseText = "Showing your orders.";
+    }
+    
+    // 2. Theme
+    else if (lower.includes('dark mode') || lower.includes('dark theme')) {
+        action = 'set_theme';
+        item = 'dark';
+        responseText = "Switching to dark mode.";
+    } else if (lower.includes('light mode') || lower.includes('light theme')) {
+        action = 'set_theme';
+        item = 'light';
+        responseText = "Switching to light mode.";
+    }
+
+    // 3. Cart Operations
+    else if (lower.includes('add') || lower.includes('buy')) {
+        action = 'add_to_cart';
+        // Extract item: "add red shoes to cart" -> "red shoes"
+        const match = lower.match(/(?:add|buy)\s+(.*?)(?:\s+to\s+cart)?$/);
+        item = match ? match[1] : '';
+        responseText = `Adding ${item} to cart.`;
+    } else if (lower.includes('remove') || lower.includes('delete')) {
+        action = 'remove_from_cart';
+        const match = lower.match(/(?:remove|delete)\s+(.*?)(?:\s+from\s+cart)?$/);
+        item = match ? match[1] : '';
+        responseText = `Removing ${item} from cart.`;
+    }
+
+    // 4. Search (Default fallback for "show me", "find", etc.)
+    else if (lower.includes('search') || lower.includes('find') || lower.includes('show') || lower.includes('looking for')) {
+        action = 'search';
+        const match = lower.match(/(?:search for|find|show me|looking for)\s+(.*)/);
+        item = match ? match[1] : lower;
+        responseText = `Searching for ${item}.`;
+    }
+    
+    // 5. Checkout
+    else if (lower.includes('checkout') || lower.includes('buy now')) {
+        action = 'checkout';
+        responseText = "Proceeding to checkout.";
+    }
+
+    return {
+        success: true,
+        transcript: text,
+        action,
+        item,
+        responseText,
+        language: detectLanguage(text),
+        timestamp: new Date().toISOString()
+    };
 }
 
 /**
