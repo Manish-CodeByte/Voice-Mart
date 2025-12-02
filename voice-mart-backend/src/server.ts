@@ -91,6 +91,11 @@ app.get('/health', (_req: Request, res: Response) => {
     });
 });
 
+// Serve API Documentation at root
+app.get('/', (_req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, '../src/public/index.html'));
+});
+
 // Register routes
 app.use('/api/voice', voiceRoutes);
 app.use('/api/products', productsRoutes);

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Mart API</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --method-get: #0ea5e9;
+            --method-post: #22c55e;
+            --method-put: #f59e0b;
+            --method-delete: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: #dcfce7;
+            color: #166534;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        .endpoint {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .endpoint:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+        }
+
+        .method {
+            font-weight: 700;
+            font-size: 0.875rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            margin-right: 1rem;
+            min-width: 60px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .method.get { background-color: #e0f2fe; color: var(--method-get); }
+        .method.post { background-color: #dcfce7; color: var(--method-post); }
+        .method.put { background-color: #fef3c7; color: var(--method-put); }
+        .method.delete { background-color: #fee2e2; color: var(--method-delete); }
+
+        .path {
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+            color: var(--primary);
+            margin-right: 1rem;
+        }
+
+        .description {
+            color: var(--text-light);
+            flex: 1;
+        }
+
+        .auth-lock {
+            margin-left: 0.5rem;
+            font-size: 1rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Voice Mart Backend API</h1>
+            <p>Robust, scalable, and voice-enabled e-commerce backend.</p>
+            <div class="status-badge">● System Operational</div>
+        </header>
+
+        <div class="card">
+            <h2>System</h2>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/health</span>
+                <span class="description">Check API health status, uptime, and environment info.</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Authentication (Clerk)</h2>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/auth/sync</span>
+                <span class="description">Sync Clerk user data with local database.</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Voice & AI</h2>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/voice/transcribe</span>
+                <span class="description">Transcribe audio files using Google STT.</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/voice/command</span>
+                <span class="description">Process natural language voice commands.</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Products</h2>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/products</span>
+                <span class="description">List all products with pagination and filtering.</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/products/:id</span>
+                <span class="description">Get detailed information for a specific product.</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/products/search</span>
+                <span class="description">Search products by name or description.</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Cart & Orders 🔒</h2>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/cart</span>
+                <span class="description">Get current user's shopping cart.</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/cart/add</span>
+                <span class="description">Add an item to the cart.</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/orders</span>
+                <span class="description">Create a new order from cart.</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/orders</span>
+                <span class="description">List user's past orders.</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>User Profile 🔒</h2>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/addresses</span>
+                <span class="description">Get user's saved addresses.</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/addresses</span>
+                <span class="description">Add a new shipping address.</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/wishlist</span>
+                <span class="description">Get user's wishlist items.</span>
+            </div>
+        </div>
+
+        <footer>
+            <p>Voice Mart Backend &copy; 2025. Powered by Node.js, Express, and Firebase.</p>
+        </footer>
+    </div>
+</body>
+</html>
