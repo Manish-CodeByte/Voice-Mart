@@ -13,7 +13,7 @@ import { Trans } from '@/app/context/Translator';
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { addToCart } = useCart();
+  const { addToCart, getItemQuantity, updateQuantity } = useCart();
   const { getToken } = useAuth();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -205,50 +205,99 @@ export default function ProductDetailPage() {
               <p className="text-muted-foreground leading-relaxed"><Trans>{product.description}</Trans></p>
             </div>
 
-            {/* Quantity Selector */}
-            <div className="mb-6">
-              <label className="block text-sm font-semibold mb-3"><Trans>Quantity</Trans></label>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
-                  className="w-10 h-10 rounded-lg border-2 border-border hover:border-primary hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed font-bold"
-                >
-                  -
-                </button>
-                <span className="w-16 text-center font-bold text-lg">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  disabled={quantity >= product.stock}
-                  className="w-10 h-10 rounded-lg border-2 border-border hover:border-primary hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed font-bold"
-                >
-                  +
-                </button>
-              </div>
-            </div>
+            {/* Dynamic Cart Actions */}
+            {getItemQuantity(params.id as string) > 0 ? (
+              <div className="mb-8 p-6 bg-primary/5 rounded-2xl border border-primary/20">
+                <div className="flex items-center gap-2 text-primary font-bold mb-4">
+                  <Check className="h-5 w-5" />
+                  <Trans>Added to Cart</Trans>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 bg-background rounded-xl border border-border p-1">
+                    <button
+                      onClick={() => updateQuantity(params.id as string, Math.max(0, getItemQuantity(params.id as string) - 1))}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-accent font-bold text-lg transition-colors"
+                    >
+                      -
+                    </button>
+                    <span className="w-12 text-center font-bold text-xl">{getItemQuantity(params.id as string)}</span>
+                    <button
+                      onClick={() => updateQuantity(params.id as string, Math.min(product.stock, getItemQuantity(params.id as string) + 1))}
+                      disabled={getItemQuantity(params.id as string) >= product.stock}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed font-bold text-lg transition-colors"
+                    >
+                      +
+                    </button>
+                  </div>
+                  
+                  <button 
+                    onClick={() => router.push('/cart')}
+                    className="flex-1 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors"
+                  >
+                    <Trans>Go to Cart</Trans>
+                  </button>
 
-            {/* Action Buttons */}
-            <div className="flex gap-4 mb-8">
-              <button
-                onClick={handleAddToCart}
-                disabled={product.stock === 0 || addingToCart}
-                className="flex-1 flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {addingToCart ? <Trans>Adding...</Trans> : <Trans>Add to Cart</Trans>}
-              </button>
-              
-              <button
-                onClick={handleWishlistToggle}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  isInWishlist
-                    ? 'border-red-500 bg-red-500 text-white'
-                    : 'border-border hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-950'
-                }`}
-              >
-                <Heart className={`h-6 w-6 ${isInWishlist ? 'fill-current' : ''}`} />
-              </button>
-            </div>
+                  <button
+                    onClick={handleWishlistToggle}
+                    className={`p-3 rounded-xl border-2 transition-all ${
+                      isInWishlist
+                        ? 'border-red-500 bg-red-500 text-white'
+                        : 'border-border hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-950'
+                    }`}
+                  >
+                    <Heart className={`h-6 w-6 ${isInWishlist ? 'fill-current' : ''}`} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Quantity Selector */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold mb-3"><Trans>Quantity</Trans></label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                      className="w-10 h-10 rounded-lg border-2 border-border hover:border-primary hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                    >
+                      -
+                    </button>
+                    <span className="w-16 text-center font-bold text-lg">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                      disabled={quantity >= product.stock}
+                      className="w-10 h-10 rounded-lg border-2 border-border hover:border-primary hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4 mb-8">
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={product.stock === 0 || addingToCart}
+                    className="flex-1 flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    {addingToCart ? <Trans>Adding...</Trans> : <Trans>Add to Cart</Trans>}
+                  </button>
+                  
+                  <button
+                    onClick={handleWishlistToggle}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      isInWishlist
+                        ? 'border-red-500 bg-red-500 text-white'
+                        : 'border-border hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-950'
+                    }`}
+                  >
+                    <Heart className={`h-6 w-6 ${isInWishlist ? 'fill-current' : ''}`} />
+                  </button>
+                </div>
+              </>
+            )}
 
             {/* Features */}
             <div className="grid gap-4">
