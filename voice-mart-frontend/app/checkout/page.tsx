@@ -121,10 +121,10 @@ export default function CheckoutPage() {
   const finalTotal = totalPrice + deliveryFee;
 
   const [cardDetails, setCardDetails] = useState({
-    number: '4242 4242 4242 4242',
-    name: user?.fullName || 'JOHN DOE',
-    expiry: '12/28',
-    cvv: '123'
+    number: '',
+    name: user?.fullName || '',
+    expiry: '',
+    cvv: ''
   });
   const [isFlipped, setIsFlipped] = useState(false);
   const [selectedBank, setSelectedBank] = useState('');
@@ -428,7 +428,7 @@ export default function CheckoutPage() {
                   const isSelected = selectedPayment === method.id;
                   
                   return (
-                    <div key={method.id} className={`rounded-xl border-2 transition-all overflow-hidden ${
+                    <div key={method.id} className={`rounded-xl border-2 transition-all ${
                       isSelected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
                     }`}>
                       <button
