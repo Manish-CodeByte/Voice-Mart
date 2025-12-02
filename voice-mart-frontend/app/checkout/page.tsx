@@ -466,7 +466,7 @@ export default function CheckoutPage() {
                             <div className="space-y-3">
                               <p className="text-sm text-muted-foreground"><Trans>Pay using any UPI app on your phone</Trans></p>
                               <a 
-                                href={`upi://pay?pa=generic@upi&pn=VoiceMart&am=${finalTotal}&cu=INR`}
+                                href={`upi://pay?pa=krishnapallan128@oksbi&pn=Krishna%20H%20Pallan&am=${finalTotal}&cu=INR`}
                                 className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-[#2b2b2b] text-white font-medium hover:bg-black transition-colors"
                               >
                                 <Smartphone className="h-4 w-4" />
