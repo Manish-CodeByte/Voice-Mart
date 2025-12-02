@@ -243,7 +243,7 @@ export default function CheckoutPage() {
               const verifyRes = await api.verifyPayment(response, token);
               if (verifyRes.success) {
                 // 5. Place Order in DB
-                await createOrderInDb(token);
+                await createOrderInDb();
               } else {
                 toast.error('Payment verification failed');
                 setProcessing(false);
@@ -269,7 +269,7 @@ export default function CheckoutPage() {
         
       } else {
         // Standard Order Placement (COD, etc.)
-        await createOrderInDb(token);
+        await createOrderInDb();
       }
 
     } catch (error) {
@@ -279,8 +279,16 @@ export default function CheckoutPage() {
     }
   };
 
-  const createOrderInDb = async (token: string) => {
+  const createOrderInDb = async (initialToken?: string) => {
     try {
+      // Fetch a fresh token to ensure it hasn't expired during payment flow
+      const token = await getToken();
+      
+      if (!token) {
+        toast.error('Authentication session expired. Please sign in again.');
+        return;
+      }
+
       const orderData = {
         items: items.map(item => ({
           productId: item.productId,
