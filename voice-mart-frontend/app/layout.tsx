@@ -8,6 +8,8 @@ import { CartProvider } from "@/contexts/CartContext";
 import { Toaster } from 'sonner';
 import AuthSync from "@/components/AuthSync";
 import { LanguageProvider } from "@/app/context/LanguageContext";
+import { VoiceProvider } from "@/contexts/VoiceContext";
+import VoiceAssistant from "@/components/VoiceAssistant";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] });
 
@@ -33,12 +35,15 @@ export default function RootLayout({
           >
             <CartProvider>
               <LanguageProvider>
-                <AuthSync />
-                <Header />
-                <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
-                  {children}
-                </main>
-                <Toaster position="top-right" richColors closeButton expand={false} />
+                <VoiceProvider>
+                  <AuthSync />
+                  <Header />
+                  <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
+                    {children}
+                  </main>
+                  <Toaster position="top-right" richColors closeButton expand={false} />
+                  <VoiceAssistant />
+                </VoiceProvider>
               </LanguageProvider>
             </CartProvider>
           </ThemeProvider>

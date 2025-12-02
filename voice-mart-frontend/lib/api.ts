@@ -118,27 +118,7 @@ export class ApiClient {
     });
   }
 
-  // Wishlist
-  async getWishlist(token: string) {
-    return this.request('/wishlist', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-  }
 
-  async addToWishlist(productId: string, token: string) {
-    return this.request('/wishlist', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ productId }),
-    });
-  }
-
-  async removeFromWishlist(productId: string, token: string) {
-    return this.request(`/wishlist/${productId}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-  }
 
   // Orders
   async getOrders(token: string) {
@@ -347,6 +327,28 @@ export class ApiClient {
       body: JSON.stringify(data),
     });
   }
+  // Wishlist
+  async getWishlist(token: string) {
+    return this.request('/wishlist', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  async addToWishlist(productId: string, token: string) {
+    return this.request('/wishlist', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ productId }),
+    });
+  }
+
+  async removeFromWishlist(productId: string, token: string) {
+    return this.request(`/wishlist/${productId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
   // Payment
   async createPaymentOrder(amount: number, token: string) {
     return this.request('/payment/create-order', {
@@ -362,6 +364,19 @@ export class ApiClient {
       headers: { Authorization: `Bearer ${token}` },
       body: JSON.stringify(data),
     });
+  }
+  async sendVoiceCommand(audioBlob: Blob) {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'command.wav');
+
+    // We use fetch directly here because we need to send FormData
+    // and our request helper is optimized for JSON
+    const response = await fetch(`${this.baseURL}/voice/voice-command`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    return response.json();
   }
 }
 

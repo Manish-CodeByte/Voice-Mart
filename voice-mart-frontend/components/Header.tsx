@@ -7,15 +7,18 @@ import DarkModeToggle from './DarkModeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
 import UserMenu from './UserMenu';
 import { useCart } from '@/contexts/CartContext';
+import { useVoice } from '@/contexts/VoiceContext';
 import CartDrawer from './CartDrawer';
 import Search from './Search';
 import { useState } from 'react';
+import { Mic } from 'lucide-react';
 
 import { usePathname } from 'next/navigation';
 import { Trans } from '@/app/context/Translator';
 
 export default function Header() {
     const { totalItems, isCartOpen, openCart, closeCart } = useCart();
+    const { enableVoice, isVoiceEnabled } = useVoice();
     const pathname = usePathname();
 
     if (pathname?.startsWith('/admin')) return null;
@@ -49,6 +52,18 @@ export default function Header() {
                         <nav className="flex items-center gap-2">
                             <LanguageSwitcher />
                             <DarkModeToggle />
+                            
+                            <button
+                                onClick={enableVoice}
+                                className={`p-2.5 rounded-lg transition-all duration-300 group ${
+                                    isVoiceEnabled 
+                                        ? 'bg-primary/10 text-primary' 
+                                        : 'hover:bg-accent text-muted-foreground hover:text-primary'
+                                }`}
+                                title="Try Voice Mode"
+                            >
+                                <Mic className={`h-5 w-5 ${isVoiceEnabled ? 'animate-pulse' : ''}`} />
+                            </button>
                             
                             <button
                                 onClick={openCart}

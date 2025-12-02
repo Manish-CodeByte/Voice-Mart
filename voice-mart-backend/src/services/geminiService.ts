@@ -16,6 +16,8 @@ export interface VoiceCommandResult {
     transcript: string;
     action: string;
     item: string;
+    responseText?: string;
+    audioResponse?: string; // Base64 audio
     language?: string;
     error?: string;
     timestamp?: string;
@@ -66,102 +68,103 @@ export function cleanupAudioFile(audioPath: string): void {
 }
 
 /**
- * Transcribe and understand voice commands from audio file
- * Supports Tulu, Kannada, English, and mixed languages
- * @param {string} audioPath - Path to the WAV audio file
- * @returns {Promise<VoiceCommandResult>} - Parsed JSON with transcript, action, and item
+ * Process text command with Gemini
+ * @param {string} text - The user's spoken text
+ * @returns {Promise<VoiceCommandResult>} - Parsed JSON
  */
-export async function transcribeAndUnderstand(audioPath: string): Promise<VoiceCommandResult> {
+export async function processTextCommand(text: string): Promise<VoiceCommandResult> {
     try {
-        logger.info(`🎤 Processing audio file: ${audioPath}`);
+        logger.info(`🤖 Processing text command: "${text}"`);
 
-        // Read the audio file
-        const audioBuffer = fs.readFileSync(audioPath);
-
-        // Convert to base64
-        const audioBase64 = audioBuffer.toString('base64');
-
-        logger.info(`📦 Audio converted to base64, size: ${audioBase64.length}`);
-
-        // Get the Gemini model
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-        // Prepare the prompt
-        const prompt = `You are a voice command interpreter for a shopping webapp.
-User may speak in Tulu, Kannada, English or mixed.
-Your job is to convert the spoken audio into JSON.
+        const prompt = `You are a smart voice assistant for a shopping webapp called "Voice Mart".
+User speaks in natural language (English, Kannada, Hindi, etc., but NOT Tulu).
+Your job is to understand the intent and return a JSON response.
 
 Output ONLY JSON in this exact format:
 {
-  "transcript": "",
-  "action": "",
-  "item": ""
+  "transcript": "The user's spoken text",
+  "action": "The action to perform",
+  "item": "The product or item mentioned (if any)",
+  "responseText": "A natural, friendly response to speak back to the user"
 }
 
 Valid actions:
-- add_to_cart
-- remove_from_cart
-- search
-- unknown
+- add_to_cart (if user wants to buy/add something)
+- remove_from_cart (if user wants to remove something)
+- search (if user is looking for something, including price filters)
+- navigate (if user wants to go to a page like 'cart', 'home', 'orders', 'wishlist')
+- set_theme (if user wants to change theme to 'dark', 'light', or 'system')
+- add_to_wishlist (if user wants to add item to wishlist)
+- checkout (if user wants to proceed to checkout)
+- unknown (if intent is unclear)
 
-Example commands:
-"Cart-d pole" → add_to_cart
-"Idd item cart-d pole" → add_to_cart
-"Onji mobile search malpe" → search
-"Item maide remove malpe" → remove_from_cart
-"Soap add madle" → add_to_cart
+Guidelines for "responseText":
+- Keep it short, friendly, and conversational.
+- Confirm the action (e.g., "Switching to dark mode", "Heading to checkout").
+- If the action is unknown, ask for clarification.
+- Respond in the SAME language as the user.
 
-Listen to the audio and extract the command. Return ONLY valid JSON, no other text.`;
+Example interactions:
+User: "Change to dark mode"
+JSON: {
+  "transcript": "Change to dark mode",
+  "action": "set_theme",
+  "item": "dark",
+  "responseText": "Switching to dark mode."
+}
 
-        // Prepare audio data for Gemini
-        const audioPart = {
-            inlineData: {
-                data: audioBase64,
-                mimeType: 'audio/wav' // Assuming WAV as per user's original code, but could be others
-            }
-        };
+User: "Show me mobiles under 50000"
+JSON: {
+  "transcript": "Show me mobiles under 50000",
+  "action": "search",
+  "item": "mobiles under 50000",
+  "responseText": "Searching for mobiles under 50,000."
+}
 
-        logger.info('🤖 Sending to Gemini for transcription...');
+User Input: "${text}"
+Return ONLY valid JSON.`;
 
-        // Generate content with audio
-        const result = await model.generateContent([prompt, audioPart]);
-        const response = await result.response;
-        const text = response.text();
+        let responseText;
+        
+        try {
+            // Try primary model (Gemini 2.0 Flash)
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            responseText = response.text();
+        } catch (error: any) {
+            logger.warn(`Gemini 2.0 Flash failed (${error.message}), falling back to Gemini Pro`);
+            
+            // Fallback to Gemini Pro
+            const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-pro' });
+            const result = await fallbackModel.generateContent(prompt);
+            const response = await result.response;
+            responseText = response.text();
+        }
 
-        logger.info(`✅ Gemini response: ${text}`);
+        logger.info(`✅ Gemini response: ${responseText}`);
 
         // Parse JSON response
         try {
-            // Clean the response (remove markdown code blocks if present)
-            const cleanText = text
+            const cleanText = responseText
                 .replace(/```json\n?/g, '')
                 .replace(/```\n?/g, '')
                 .trim();
 
             const parsed = JSON.parse(cleanText);
 
-            // Validate the response structure
-            if (!parsed.transcript || !parsed.action) {
-                throw new Error('Invalid response structure');
-            }
-
-            logger.info(`📝 Transcript: ${parsed.transcript}`);
-            logger.info(`🎯 Action: ${parsed.action}`);
-            logger.info(`📦 Item: ${parsed.item || 'N/A'}`);
-
             return {
                 success: true,
-                transcript: parsed.transcript,
+                transcript: parsed.transcript || text,
                 action: parsed.action,
                 item: parsed.item || '',
-                language: detectLanguage(parsed.transcript),
+                responseText: parsed.responseText || '',
+                language: detectLanguage(text),
                 timestamp: new Date().toISOString()
             };
 
         } catch (parseError) {
             logger.error('❌ Failed to parse Gemini response:', parseError);
-
-            // Return fallback response
             return {
                 success: false,
                 transcript: text,
@@ -173,11 +176,10 @@ Listen to the audio and extract the command. Return ONLY valid JSON, no other te
         }
 
     } catch (error: any) {
-        logger.error('❌ Error in transcribeAndUnderstand:', error);
-
+        logger.error('❌ Error in processTextCommand:', error);
         return {
             success: false,
-            transcript: '',
+            transcript: text,
             action: 'unknown',
             item: '',
             error: error.message,
@@ -185,3 +187,20 @@ Listen to the audio and extract the command. Return ONLY valid JSON, no other te
         };
     }
 }
+
+/**
+ * Transcribe and understand voice commands from audio file
+ * Supports Tulu, Kannada, English, and mixed languages
+ * @param {string} audioPath - Path to the WAV audio file
+ * @returns {Promise<VoiceCommandResult>} - Parsed JSON with transcript, action, and item
+ */
+export async function transcribeAndUnderstand(audioPath: string): Promise<VoiceCommandResult> {
+    // This function is deprecated for direct audio-to-gemini if gemini-1.5-flash is unavailable.
+    // However, we keep it signature-compatible but throw error or redirect if needed.
+    // For now, let's just return error so controller handles it? 
+    // Or better, we can't easily call STT here without circular deps or code duplication.
+    // Let's modify the controller to call STT then processTextCommand.
+    throw new Error("Direct Audio-to-Gemini not supported with current model configuration. Use STT + processTextCommand.");
+}
+
+

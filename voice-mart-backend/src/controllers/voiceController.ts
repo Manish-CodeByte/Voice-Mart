@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { sttService } from '../services/sttService.js';
 import { transcribeAndUnderstand, cleanupAudioFile } from '../services/geminiService.js';
+import { ttsService } from '../services/ttsService.js';
 import logger from '../utils/logger.js';
+import fs from 'fs';
 
 export const transcribe = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -64,8 +66,34 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
         logger.info(`📊 File size: ${req.file.size} bytes`);
         logger.info(`🎵 MIME type: ${req.file.mimetype}`);
 
-        // Process the audio file with Gemini
-        const result = await transcribeAndUnderstand(req.file.path);
+        // Process the audio file with STT first
+        const audioBuffer = fs.readFileSync(req.file.path);
+        const audioBase64 = audioBuffer.toString('base64');
+        
+        // 1. Transcribe Audio
+        const sttResult = await sttService.transcribeAudio(audioBase64);
+        logger.info(`📝 Transcribed text: ${sttResult.text}`);
+
+        // 2. Understand Intent (Text -> Gemini)
+        // Import processTextCommand dynamically or assume it's imported
+        const { processTextCommand } = await import('../services/geminiService.js');
+        const result = await processTextCommand(sttResult.text);
+
+        // Generate audio response if text response exists
+        if (result.success && result.responseText) {
+            try {
+                // Use detected language or fallback to English
+                const langCode = result.language === 'kannada' ? 'kn-IN' : 
+                               result.language === 'hindi' ? 'hi-IN' : 
+                               'en-IN';
+                
+                const audioContent = await ttsService.synthesizeSpeech(result.responseText, langCode);
+                result.audioResponse = audioContent;
+            } catch (ttsError: any) {
+                logger.error('TTS generation failed:', ttsError);
+                result.error = `TTS Error: ${ttsError.message}`;
+            }
+        }
 
         // Clean up the uploaded file
         cleanupAudioFile(req.file.path);
