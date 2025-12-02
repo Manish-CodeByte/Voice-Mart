@@ -5,10 +5,16 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || '',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || '',
-});
+let razorpay: Razorpay | null = null;
+
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+} else {
+  console.warn('⚠️ RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is missing. Payment features will fail.');
+}
 
 export const createOrder = async (req: Request, res: Response) => {
   try {
@@ -23,6 +29,10 @@ export const createOrder = async (req: Request, res: Response) => {
       currency,
       receipt: `receipt_${Date.now()}`,
     };
+
+    if (!razorpay) {
+      return res.status(500).json({ success: false, message: 'Payment gateway not configured' });
+    }
 
     const order = await razorpay.orders.create(options);
 
