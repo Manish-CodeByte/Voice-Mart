@@ -49,6 +49,7 @@ class OrderService {
         status: 'pending' as OrderStatus,
         shippingAddress: dto.shippingAddress,
         paymentMethod: dto.paymentMethod,
+        paymentDetails: dto.paymentDetails,
         createdAt: now,
         updatedAt: now,
       };
@@ -86,6 +87,7 @@ class OrderService {
         status: data?.status || 'pending',
         shippingAddress: data?.shippingAddress,
         paymentMethod: data?.paymentMethod,
+        paymentDetails: data?.paymentDetails,
         createdAt: data?.createdAt?.toDate() || new Date(),
         updatedAt: data?.updatedAt?.toDate() || new Date(),
       };
@@ -113,6 +115,7 @@ class OrderService {
           status: data.status || 'pending',
           shippingAddress: data.shippingAddress,
           paymentMethod: data.paymentMethod,
+          paymentDetails: data.paymentDetails,
           createdAt: data.createdAt?.toDate() || new Date(),
           updatedAt: data.updatedAt?.toDate() || new Date(),
         };

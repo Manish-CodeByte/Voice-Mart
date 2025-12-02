@@ -122,7 +122,7 @@ export default function CheckoutPage() {
 
   const [cardDetails, setCardDetails] = useState({
     number: '',
-    name: user?.fullName || '',
+    name: '',
     expiry: '',
     cvv: ''
   });
@@ -243,7 +243,7 @@ export default function CheckoutPage() {
               const verifyRes = await api.verifyPayment(response, token);
               if (verifyRes.success) {
                 // 5. Place Order in DB
-                await createOrderInDb();
+                await createOrderInDb(undefined, response);
               } else {
                 toast.error('Payment verification failed');
                 setProcessing(false);
@@ -279,7 +279,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const createOrderInDb = async (initialToken?: string) => {
+  const createOrderInDb = async (initialToken?: string, paymentDetails?: any) => {
     try {
       // Fetch a fresh token to ensure it hasn't expired during payment flow
       const token = await getToken();
@@ -299,6 +299,7 @@ export default function CheckoutPage() {
         })),
         shippingAddress,
         paymentMethod: selectedPayment,
+        paymentDetails,
       };
 
       const response = await api.createOrder(orderData, token);

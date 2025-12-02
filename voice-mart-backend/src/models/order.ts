@@ -27,6 +27,11 @@ export interface Order {
   status: OrderStatus;
   shippingAddress: ShippingAddress;
   paymentMethod: string;
+  paymentDetails?: {
+    razorpay_payment_id?: string;
+    razorpay_order_id?: string;
+    razorpay_signature?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +40,11 @@ export interface CreateOrderDTO {
   items: OrderItem[];
   shippingAddress: ShippingAddress;
   paymentMethod: string;
+  paymentDetails?: {
+    razorpay_payment_id?: string;
+    razorpay_order_id?: string;
+    razorpay_signature?: string;
+  };
 }
 
 export interface UpdateOrderStatusDTO {

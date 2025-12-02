@@ -111,6 +111,7 @@ export default function AdminOrdersPage() {
                   <th className="text-left p-4 font-semibold">Customer</th>
                   <th className="text-left p-4 font-semibold">Items</th>
                   <th className="text-left p-4 font-semibold">Total</th>
+                  <th className="text-left p-4 font-semibold">Payment</th>
                   <th className="text-left p-4 font-semibold">Status</th>
                   <th className="text-left p-4 font-semibold">Date</th>
                   <th className="text-left p-4 font-semibold">Actions</th>
@@ -128,6 +129,14 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="p-4">{order.totalItems} items</td>
                     <td className="p-4 font-semibold">₹{order.totalPrice.toLocaleString()}</td>
+                    <td className="p-4">
+                      <div className="font-medium capitalize">{order.paymentMethod}</div>
+                      {order.paymentDetails?.razorpay_payment_id && (
+                        <div className="text-xs text-muted-foreground font-mono mt-1">
+                          ID: {order.paymentDetails.razorpay_payment_id}
+                        </div>
+                      )}
+                    </td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                         order.status === 'delivered' ? 'bg-green-500/10 text-green-600' :
