@@ -27,7 +27,7 @@ export default function Search() {
 
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (query.trim().length < 2) {
+      if (!query.trim()) {
         setSuggestions([]);
         return;
       }
@@ -89,7 +89,7 @@ export default function Search() {
       </form>
 
       {/* Suggestions Dropdown */}
-      {showSuggestions && (query.length >= 2) && (
+      {showSuggestions && query.trim() && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-lg overflow-hidden z-50">
           {loading ? (
             <div className="p-4 text-center text-sm text-muted-foreground">

@@ -62,12 +62,12 @@ class ProductService {
     }
   }
 
-  async searchProducts(query: string, limit: number = 5): Promise<Product[]> {
+  async searchProducts(query: string, limit: number = 10): Promise<Product[]> {
     try {
       // Note: Firestore doesn't support native full-text search.
       // For a production app, use Algolia or ElasticSearch.
       // Here we'll fetch all products (cached if possible) and filter in memory
-      // or use a simple prefix search if the dataset is small.
+      // using a scoring algorithm for better relevance.
       
       const snapshot = await this.collection.get();
       const allProducts = snapshot.docs.map((doc: any) => ({
@@ -75,9 +75,41 @@ class ProductService {
         ...doc.data(),
       } as Product));
 
-      const searchLower = query.toLowerCase();
-      const suggestions = allProducts
-        .filter(p => p.name.toLowerCase().includes(searchLower))
+      const searchLower = query.toLowerCase().trim();
+      if (!searchLower) return [];
+
+      const searchTokens = searchLower.split(/\s+/);
+
+      const scoredProducts = allProducts.map(product => {
+        let score = 0;
+        const nameLower = product.name.toLowerCase();
+        const descLower = (product.description || '').toLowerCase();
+        const categoryLower = (product.category || '').toLowerCase();
+
+        // 1. Exact match (Highest priority)
+        if (nameLower === searchLower) score += 100;
+
+        // 2. Starts with (High priority)
+        if (nameLower.startsWith(searchLower)) score += 50;
+
+        // 3. Contains exact phrase (Medium priority)
+        if (nameLower.includes(searchLower)) score += 20;
+
+        // 4. Token matching (Low priority, but good for partial matches)
+        searchTokens.forEach(token => {
+          if (nameLower.includes(token)) score += 10;
+          if (categoryLower.includes(token)) score += 5;
+          if (descLower.includes(token)) score += 1;
+        });
+
+        return { product, score };
+      });
+
+      // Filter out zero scores and sort by score desc
+      const suggestions = scoredProducts
+        .filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map(item => item.product)
         .slice(0, limit);
 
       return suggestions;
