@@ -74,9 +74,8 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
         const sttResult = await sttService.transcribeAudio(audioBase64);
         logger.info(`📝 Transcribed text: ${sttResult.text}`);
 
-        // 2. Understand Intent (Text -> Gemini)
-        // Import processTextCommand dynamically or assume it's imported
-        const { processTextCommand } = await import('../services/geminiService.js');
+        // 2. Understand Intent (Text -> Hugging Face FREE Model)
+        const { processTextCommand } = await import('../services/huggingfaceService.js');
         const result = await processTextCommand(sttResult.text);
 
         // Generate audio response if text response exists

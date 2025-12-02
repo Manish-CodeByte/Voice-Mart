@@ -203,71 +203,98 @@ Return ONLY valid JSON.`;
 
 /**
  * Rule-Based Fallback for when AI fails
- * Uses Regex to match common intents
+ * Uses Regex to match common intents in multiple languages
  */
 function fallbackToRegex(text: string): VoiceCommandResult {
-    const lower = text.toLowerCase();
+    const lower = text.toLowerCase().trim();
     let action = 'unknown';
     let item = '';
     let responseText = "I'm sorry, I didn't understand that.";
+    let detectedLang = 'en-IN';
 
-    // 1. Navigation
-    if (lower.includes('cart') && (lower.includes('open') || lower.includes('go') || lower.includes('show'))) {
+    // Detect language from script
+    if (/[\u0900-\u097F]/.test(text)) {
+        detectedLang = 'hi-IN'; // Hindi
+        responseText = "मुझे समझ नहीं आया।";
+    } else if (/[\u0C80-\u0CFF]/.test(text)) {
+        detectedLang = 'kn-IN'; // Kannada
+        responseText = "ನನಗೆ ಅರ್ಥವಾಗಲಿಲ್ಲ.";
+    }
+
+    // 1. Checkout (MUST BE FIRST - most specific)
+    if (lower.match(/\b(checkout|check out)\b/) || 
+        lower.includes('चेकआउट') || lower.includes('ಚೆಕ್‌ಔಟ್')) {
+        action = 'checkout';
+        responseText = detectedLang === 'hi-IN' ? 'चेकआउट पर जा रहे हैं।' :
+                       detectedLang === 'kn-IN' ? 'ಚೆಕ್‌ಔಟ್‌ಗೆ ಹೋಗುತ್ತಿದ್ದೇವೆ.' :
+                       'Proceeding to checkout.';
+    }
+    
+    // 2. Navigation - Cart
+    else if (lower.match(/\b(open|go to|show|view)\b.*\bcart\b/) ||
+             lower.includes('कार्ट') || lower.includes('ಕಾರ್ಟ್')) {
         action = 'navigate';
         item = 'cart';
-        responseText = "Opening your cart.";
-    } else if (lower.includes('home') || lower.includes('main')) {
+        responseText = detectedLang === 'hi-IN' ? 'कार्ट खोल रहे हैं।' :
+                       detectedLang === 'kn-IN' ? 'ಕಾರ್ಟ್ ತೆರೆಯುತ್ತಿದ್ದೇವೆ.' :
+                       'Opening your cart.';
+    }
+    
+    // 3. Navigation - Home
+    else if (lower.match(/\b(home|main page|homepage)\b/) ||
+             lower.includes('होम') || lower.includes('ಮುಖಪುಟ')) {
         action = 'navigate';
         item = 'home';
-        responseText = "Going to home page.";
-    } else if (lower.includes('wishlist')) {
-        action = 'navigate';
-        item = 'wishlist';
-        responseText = "Opening your wishlist.";
-    } else if (lower.includes('order')) {
+        responseText = detectedLang === 'hi-IN' ? 'होम पेज पर जा रहे हैं।' :
+                       detectedLang === 'kn-IN' ? 'ಮುಖಪುಟಕ್ಕೆ ಹೋಗುತ್ತಿದ್ದೇವೆ.' :
+                       'Going to home page.';
+    }
+    
+    // 4. Navigation - Orders
+    else if (lower.match(/\b(order|orders|my order)\b/) ||
+             lower.includes('ऑर्डर') || lower.includes('ಆರ್ಡರ್')) {
         action = 'navigate';
         item = 'orders';
-        responseText = "Showing your orders.";
+        responseText = detectedLang === 'hi-IN' ? 'आपके ऑर्डर दिखा रहे हैं।' :
+                       detectedLang === 'kn-IN' ? 'ನಿಮ್ಮ ಆರ್ಡರ್‌ಗಳನ್ನು ತೋರಿಸುತ್ತಿದ್ದೇವೆ.' :
+                       'Showing your orders.';
     }
     
-    // 2. Theme
-    else if (lower.includes('dark mode') || lower.includes('dark theme')) {
+    // 5. Theme - Dark
+    else if (lower.match(/\b(dark mode|dark theme|enable dark|switch to dark)\b/) ||
+             lower.includes('डार्क मोड') || lower.includes('ಡಾರ್ಕ್ ಮೋಡ್')) {
         action = 'set_theme';
         item = 'dark';
-        responseText = "Switching to dark mode.";
-    } else if (lower.includes('light mode') || lower.includes('light theme')) {
-        action = 'set_theme';
-        item = 'light';
-        responseText = "Switching to light mode.";
-    }
-
-    // 3. Cart Operations
-    else if (lower.includes('add') || lower.includes('buy')) {
-        action = 'add_to_cart';
-        // Extract item: "add red shoes to cart" -> "red shoes"
-        const match = lower.match(/(?:add|buy)\s+(.*?)(?:\s+to\s+cart)?$/);
-        item = match ? match[1] : '';
-        responseText = `Adding ${item} to cart.`;
-    } else if (lower.includes('remove') || lower.includes('delete')) {
-        action = 'remove_from_cart';
-        const match = lower.match(/(?:remove|delete)\s+(.*?)(?:\s+from\s+cart)?$/);
-        item = match ? match[1] : '';
-        responseText = `Removing ${item} from cart.`;
-    }
-
-    // 4. Search (Default fallback for "show me", "find", etc.)
-    else if (lower.includes('search') || lower.includes('find') || lower.includes('show') || lower.includes('looking for')) {
-        action = 'search';
-        const match = lower.match(/(?:search for|find|show me|looking for)\s+(.*)/);
-        item = match ? match[1] : lower;
-        responseText = `Searching for ${item}.`;
+        responseText = detectedLang === 'hi-IN' ? 'डार्क मोड में बदल रहे हैं।' :
+                       detectedLang === 'kn-IN' ? 'ಡಾರ್ಕ್ ಮೋಡ್‌ಗೆ ಬದಲಾಯಿಸುತ್ತಿದ್ದೇವೆ.' :
+                       'Switching to dark mode.';
     }
     
-    // 5. Checkout
-    else if (lower.includes('checkout') || lower.includes('buy now')) {
-        action = 'checkout';
-        responseText = "Proceeding to checkout.";
+    // 6. Search (Default fallback)
+    else if (lower.match(/\b(search|find|show|looking for|i want|get me)\b/) ||
+             lower.includes('खोज') || lower.includes('ಹುಡುಕು') ||
+             lower.includes('दिखाओ') || lower.includes('ತೋರಿಸು')) {
+        action = 'search';
+        const patterns = [
+            /(?:search for|find|show me|looking for|i want|get me|खोज|ढूंढो|दिखाओ|ಹುಡುಕು|ತೋರಿಸು)\s+(.+)/,
+            /(.+)\s+(?:please|pls|कृपया|ದಯವಿಟ್ಟು)$/,
+        ];
+        
+        for (const pattern of patterns) {
+            const match = lower.match(pattern);
+            if (match) {
+                item = match[1].trim();
+                break;
+            }
+        }
+        
+        if (!item) item = lower;
+        responseText = detectedLang === 'hi-IN' ? `${item} खोज रहे हैं।` :
+                       detectedLang === 'kn-IN' ? `${item} ಹುಡುಕುತ್ತಿದ್ದೇವೆ.` :
+                       `Searching for ${item}.`;
     }
+
+    logger.info(`🔄 Regex Fallback: action="${action}", item="${item}", lang="${detectedLang}"`);
 
     return {
         success: true,
@@ -275,7 +302,7 @@ function fallbackToRegex(text: string): VoiceCommandResult {
         action,
         item,
         responseText,
-        language: detectLanguage(text),
+        language: detectedLang,
         timestamp: new Date().toISOString()
     };
 }

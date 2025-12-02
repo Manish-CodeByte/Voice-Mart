@@ -21,11 +21,12 @@ export class STTService {
     }
 
     async transcribeAudio(audioBase64: string, languageCode: string = 'en-IN'): Promise<VoiceTranscriptionResponse> {
+        // Use multi-language detection by default
         return this.callGoogleSTT(audioBase64, {
             encoding: 'WEBM_OPUS',
             sampleRateHertz: 48000,
-            languageCode,
-            alternativeLanguageCodes: ['en-IN', 'hi-IN', 'kn-IN'],
+            languageCode: 'en-IN', // Primary language
+            alternativeLanguageCodes: ['hi-IN', 'kn-IN', 'ta-IN', 'te-IN'], // Auto-detect these
             enableAutomaticPunctuation: true,
             model: 'latest_long',
         });
