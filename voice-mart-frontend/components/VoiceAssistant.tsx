@@ -313,6 +313,29 @@ export default function VoiceAssistant() {
         }
         break;
 
+      case 'select_payment':
+        // Trigger custom event for checkout page to handle
+        const paymentMap: Record<string, string> = {
+          'cod': 'cod',
+          'cash': 'cod',
+          'card': 'card',
+          'credit': 'card',
+          'debit': 'card',
+          'upi': 'upi',
+          'netbanking': 'netbanking',
+          'net banking': 'netbanking',
+        };
+        
+        const paymentMethod = paymentMap[item.toLowerCase()] || item.toLowerCase();
+        
+        // Dispatch custom event that checkout page can listen to
+        window.dispatchEvent(new CustomEvent('voice-select-payment', { 
+          detail: { method: paymentMethod } 
+        }));
+        
+        toast.success(`Payment method: ${item}`);
+        break;
+
       case 'checkout':
         router.push('/checkout');
         break;

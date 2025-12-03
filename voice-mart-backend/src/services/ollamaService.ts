@@ -10,7 +10,6 @@ function preprocessCommand(text: string): string {
     
     // Phonetic corrections (common mishearings)
     const phoneticMap: Record<string, string> = {
-        'card': 'cart',
         'kart': 'cart',
         'carts': 'cart',
         'fone': 'phone',
@@ -32,6 +31,12 @@ function preprocessCommand(text: string): string {
         'malayalam': 'malayalam',
         'malaylam': 'malayalam',
     };
+    
+    // Special case: "card" should only be converted to "cart" if NOT followed by "payment"
+    // This prevents "card payment" from becoming "cart payment"
+    if (!processed.includes('card payment') && !processed.includes('card method')) {
+        processed = processed.replace(/\bcard\b/gi, 'cart');
+    }
     
     // Replace phonetic errors
     Object.entries(phoneticMap).forEach(([wrong, correct]) => {
@@ -154,6 +159,7 @@ export class OllamaService {
 - **checkout**: Proceed to payment
 - **set_theme**: Change theme (dark/light)
 - **change_language**: Switch app language (en, hi, kn, ta, te, ml)
+- **select_payment**: Choose payment method (cod, card, upi, netbanking)
 - **unknown**: Cannot understand
 
 **OUTPUT FORMAT (JSON ONLY):**
@@ -186,6 +192,12 @@ Output: {"action":"change_language","item":"kn","entities":{},"responseText":"Sw
 
 Input: "ಕನ್ನಡಕ್ಕೆ ಬದಲಿಸಿ"
 Output: {"action":"change_language","item":"kn","entities":{},"responseText":"ಕನ್ನಡಕ್ಕೆ ಬದಲಾಯಿಸಲಾಗುತ್ತಿದೆ","language":"kn-IN","confidence":0.95}
+
+Input: "pay with cash on delivery"
+Output: {"action":"select_payment","item":"cod","entities":{},"responseText":"Selected Cash on Delivery","language":"en-IN","confidence":0.98}
+
+Input: "use card payment"
+Output: {"action":"select_payment","item":"card","entities":{},"responseText":"Selected Card Payment","language":"en-IN","confidence":0.98}
 
 **NOW PROCESS THE USER INPUT AND RESPOND WITH JSON ONLY:**`;
 

@@ -76,6 +76,18 @@ export default function CheckoutPage() {
     localStorage.setItem('checkout_data', JSON.stringify(data));
   }, [shippingAddress, selectedPayment, saveAddress]);
 
+  // Listen for voice payment selection
+  useEffect(() => {
+    const handleVoicePayment = (event: any) => {
+      const { method } = event.detail;
+      setSelectedPayment(method);
+      toast.success(`Payment method set to ${method.toUpperCase()}`);
+    };
+
+    window.addEventListener('voice-select-payment', handleVoicePayment);
+    return () => window.removeEventListener('voice-select-payment', handleVoicePayment);
+  }, []);
+
   const loadSavedAddresses = async () => {
     try {
       const token = await getToken();
