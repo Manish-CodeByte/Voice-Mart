@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import Breadcrumbs from '@/components/Breadcrumbs';
@@ -9,12 +10,22 @@ import { Search, Filter, ArrowUpDown } from 'lucide-react';
 import { Trans } from '@/app/context/Translator';
 
 export default function ShopPage() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('');
   const [sortBy, setSortBy] = useState('');
+
+  // Read URL parameters on mount
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    const urlMinPrice = searchParams.get('minPrice');
+    const urlMaxPrice = searchParams.get('maxPrice');
+    
+    if (urlSearch) setSearchQuery(urlSearch);
+  }, [searchParams]);
 
   useEffect(() => {
     fetchProducts();
@@ -42,6 +53,10 @@ export default function ShopPage() {
   };
 
   const applyFiltersAndSort = () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const urlMinPrice = searchParams.get('minPrice');
+    const urlMaxPrice = searchParams.get('maxPrice');
+    
     let result = [...products];
 
     // Apply search filter
@@ -53,6 +68,17 @@ export default function ShopPage() {
         product.category?.toLowerCase().includes(query) ||
         product.tags?.some((tag: string) => tag.toLowerCase().includes(query))
       );
+    }
+
+    // Apply price filters from URL
+    if (urlMinPrice) {
+      const minPrice = parseInt(urlMinPrice);
+      result = result.filter(product => product.price >= minPrice);
+    }
+    
+    if (urlMaxPrice) {
+      const maxPrice = parseInt(urlMaxPrice);
+      result = result.filter(product => product.price <= maxPrice);
     }
 
     // Apply category filter

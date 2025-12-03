@@ -146,8 +146,26 @@ export default function VoiceAssistant() {
   const processAudio = async (audioBlob: Blob) => {
     setIsProcessing(true);
     try {
-      // Send language code with the voice command
-      const result = await api.sendVoiceCommand(audioBlob, lang);
+      // Get current page context
+      const currentPath = window.location.pathname;
+      const context: any = {
+        page: currentPath,
+      };
+      
+      // If on product page, extract product ID
+      if (currentPath.includes('/shop/') && currentPath !== '/shop') {
+        const productId = currentPath.split('/shop/')[1];
+        context.productId = productId;
+        
+        // Try to get product name from page (if available)
+        const productNameElement = document.querySelector('h1');
+        if (productNameElement) {
+          context.productName = productNameElement.textContent || '';
+        }
+      }
+      
+      // Send language code and context with the voice command
+      const result = await api.sendVoiceCommand(audioBlob, lang, context);
 
       if (result.success) {
         console.log('Voice Command Result:', result);
@@ -300,11 +318,27 @@ export default function VoiceAssistant() {
         break;
 
       case 'navigate':
-        if (item.includes('cart')) router.push('/cart');
-        else if (item.includes('home')) router.push('/');
-        else if (item.includes('order')) router.push('/orders');
-        else if (item.includes('wishlist')) router.push('/wishlist');
-        else if (item.includes('profile')) router.push('/profile');
+        // Map common route names to actual paths
+        const routes: Record<string, string> = {
+          'cart': '/cart',
+          'home': '/',
+          'shop': '/shop',
+          'orders': '/orders',
+          'wishlist': '/wishlist',
+          'profile': '/profile',
+        };
+        
+        // Find matching route
+        const routeKey = Object.keys(routes).find(key => 
+          item.toLowerCase().includes(key)
+        );
+        
+        if (routeKey) {
+          router.push(routes[routeKey]);
+          toast.success(`Navigating to ${routeKey}`);
+        } else {
+          toast.error(`Unknown page: ${item}`);
+        }
         break;
 
       case 'search':
@@ -329,19 +363,26 @@ export default function VoiceAssistant() {
         if (item || entities?.product) {
           try {
             const query = entities?.product || item;
-            // Search for the product
-            const response = await api.searchProducts(query);
-            const products = response.data as any[];
             
-            if (products && products.length > 0) {
-              const product = products[0];
-              // Add to cart using CartContext method
-              await addToCart(product._id, entities?.quantity || 1);
-              toast.success(`Added ${product.name} to cart!`);
+            // If we have productId from context, use it directly
+            if (entities?.productId) {
+              await addToCart(entities.productId, entities?.quantity || 1);
+              toast.success(`Added ${query} to cart!`);
             } else {
-              toast.error(`Could not find "${query}"`);
-              // Fallback: search page
-              router.push(`/shop?search=${encodeURIComponent(query)}`);
+              // Otherwise, search for the product
+              const response = await api.searchProducts(query);
+              const products = response.data as any[];
+              
+              if (products && products.length > 0) {
+                const product = products[0];
+                // Add to cart using CartContext method
+                await addToCart(product._id, entities?.quantity || 1);
+                toast.success(`Added ${product.name} to cart!`);
+              } else {
+                toast.error(`Could not find "${query}"`);
+                // Fallback: search page
+                router.push(`/shop?search=${encodeURIComponent(query)}`);
+              }
             }
           } catch (error) {
             console.error('Error adding to cart:', error);

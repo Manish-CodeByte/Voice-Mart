@@ -362,7 +362,7 @@ export class ApiClient {
       body: JSON.stringify(data),
     });
   }
-  async sendVoiceCommand(audioBlob: Blob, languageCode: string = 'en') {
+  async sendVoiceCommand(audioBlob: Blob, languageCode: string = 'en', context?: any) {
     const formData = new FormData();
     formData.append('audio', audioBlob, 'command.wav');
     
@@ -379,6 +379,11 @@ export class ApiClient {
     
     const sttLanguageCode = languageMap[languageCode] || 'en-IN';
     formData.append('languageCode', sttLanguageCode);
+    
+    // Add context if provided
+    if (context) {
+      formData.append('context', JSON.stringify(context));
+    }
 
     // We use fetch directly here because we need to send FormData
     // and our request helper is optimized for JSON

@@ -204,6 +204,11 @@ Output: {"action":"change_language","item":"kn","entities":{},"responseText":"à²
                 ...entities,
                 ...parsed.entities,
             };
+            
+            // If context has productId, add it to entities
+            if (this.conversationContext?.productId) {
+                mergedEntities.productId = this.conversationContext.productId;
+            }
 
             return {
                 success: true,

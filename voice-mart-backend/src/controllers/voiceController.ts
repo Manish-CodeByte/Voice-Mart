@@ -73,13 +73,25 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
         // Get language from request body (sent by frontend)
         const languageCode = req.body.languageCode || 'en-IN';
         logger.info(`Processing voice command in language: ${languageCode}`);
+        
+        // Get context from request (current page, product info)
+        const context = req.body.context ? JSON.parse(req.body.context) : null;
+        if (context) {
+            logger.info(`Context received: ${JSON.stringify(context)}`);
+        }
 
         // 1. Transcribe Audio (Google STT)
         const sttResult = await sttService.transcribeAudio(audioBase64, languageCode);
         logger.info(`Transcribed text: ${sttResult.text} (Detected: ${sttResult.language})`);
 
         // 2. Understand Intent (Local Ollama AI)
-        const { processTextCommand } = await import('../services/ollamaService.js');
+        const { processTextCommand, setContext } = await import('../services/ollamaService.js');
+        
+        // Set context for Ollama if available
+        if (context) {
+            setContext(context);
+        }
+        
         // Pass the language code as a hint to Ollama
         const result = await processTextCommand(sttResult.text, languageCode);
 
