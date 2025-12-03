@@ -365,9 +365,23 @@ export class ApiClient {
       body: JSON.stringify(data),
     });
   }
-  async sendVoiceCommand(audioBlob: Blob) {
+  async sendVoiceCommand(audioBlob: Blob, languageCode: string = 'en') {
     const formData = new FormData();
     formData.append('audio', audioBlob, 'command.wav');
+    
+    // Map frontend language codes to Google STT format
+    const languageMap: Record<string, string> = {
+      'en': 'en-IN',
+      'hi': 'hi-IN',
+      'kn': 'kn-IN',
+      'ta': 'ta-IN',
+      'te': 'te-IN',
+      'ml': 'ml-IN',
+      'tu': 'en-IN' // Tulu fallback to English
+    };
+    
+    const sttLanguageCode = languageMap[languageCode] || 'en-IN';
+    formData.append('languageCode', sttLanguageCode);
 
     // We use fetch directly here because we need to send FormData
     // and our request helper is optimized for JSON

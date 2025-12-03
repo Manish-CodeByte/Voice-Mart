@@ -83,15 +83,17 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
         // Pass the language code as a hint to Ollama
         const result = await processTextCommand(sttResult.text, languageCode);
 
+
         // Generate audio response if text response exists
         if (result.success && result.responseText) {
             try {
-                // Use detected language or fallback to English
-                const langCode = result.language === 'kannada' ? 'kn-IN' : 
-                               result.language === 'hindi' ? 'hi-IN' : 
-                               'en-IN';
+                // Use the language detected by STT (not Ollama's 'auto')
+                // STT returns proper language codes like 'en-IN', 'hi-IN', 'kn-IN'
+                const ttsLanguageCode = sttResult.language || languageCode || 'en-IN';
                 
-                const audioContent = await ttsService.synthesizeSpeech(result.responseText, langCode);
+                logger.info(`Using TTS language: ${ttsLanguageCode} (detected by STT: ${sttResult.language})`);
+                
+                const audioContent = await ttsService.synthesizeSpeech(result.responseText, ttsLanguageCode);
                 result.audioResponse = audioContent;
             } catch (ttsError: any) {
                 logger.error('TTS generation failed:', ttsError);

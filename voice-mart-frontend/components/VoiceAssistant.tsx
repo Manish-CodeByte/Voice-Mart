@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { useVoice } from '@/contexts/VoiceContext';
+import { useLanguage } from '@/app/context/LanguageContext';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 
@@ -20,6 +21,7 @@ export default function VoiceAssistant() {
   const router = useRouter();
   const { addToCart, items, updateQuantity } = useCart();
   const { isVoiceEnabled } = useVoice();
+  const { language } = useLanguage();
   const { setTheme } = useTheme();
 
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -144,7 +146,8 @@ export default function VoiceAssistant() {
   const processAudio = async (audioBlob: Blob) => {
     setIsProcessing(true);
     try {
-      const result = await api.sendVoiceCommand(audioBlob);
+      // Send language code with the voice command
+      const result = await api.sendVoiceCommand(audioBlob, language);
 
       if (result.success) {
         console.log('Voice Command Result:', result);
