@@ -78,21 +78,18 @@ export class ApiClient {
   }
 
   async getSearchSuggestions(query: string) {
-    return this.request<any[]>(`/products/search/suggestions?q=${encodeURIComponent(query)}`);
+    return this.request(`/products/search/suggestions?q=${encodeURIComponent(query)}`);
+  }
+
+  // Voice Assistant: Search products by query
+  async searchProducts(query: string) {
+    return this.request(`/products?search=${encodeURIComponent(query)}&limit=5`);
   }
 
   // Cart
   async getCart(token: string) {
     return this.request('/cart', {
       headers: { Authorization: `Bearer ${token}` },
-    });
-  }
-
-  async addToCart(productId: string, quantity: number = 1, token: string) {
-    return this.request('/cart', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ productId, quantity }),
     });
   }
 

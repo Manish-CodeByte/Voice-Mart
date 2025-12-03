@@ -21,7 +21,7 @@ export default function VoiceAssistant() {
   const router = useRouter();
   const { addToCart, items, updateQuantity } = useCart();
   const { isVoiceEnabled } = useVoice();
-  const { lang } = useLanguage(); // Fixed: use 'lang' not 'language'
+  const { lang, setLang } = useLanguage(); // Fixed: use 'lang' not 'language'
   const { setTheme } = useTheme();
 
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -244,7 +244,7 @@ export default function VoiceAssistant() {
   };
 
   const executeAction = async (result: any) => {
-    const { action, item } = result;
+    const { action, item, entities } = result;
 
     switch (action) {
       case 'set_theme':
@@ -253,33 +253,50 @@ export default function VoiceAssistant() {
         else if (item.includes('system')) setTheme('system');
         break;
 
+      case 'change_language':
+        // Map language names to codes
+        const langMap: Record<string, string> = {
+          'english': 'en',
+          'kannada': 'kn',
+          'hindi': 'hi',
+          'tamil': 'ta',
+          'telugu': 'te',
+          'malayalam': 'ml',
+          'tulu': 'tcy',
+          'en': 'en',
+          'kn': 'kn',
+          'hi': 'hi',
+          'ta': 'ta',
+          'te': 'te',
+          'ml': 'ml',
+          'tcy': 'tcy',
+        };
+        
+        // Valid languages in the switcher
+        const validLanguages = ['en', 'kn', 'tcy', 'hi', 'ta', 'te', 'ml'];
+        
+        const newLang = langMap[item.toLowerCase()] || item.toLowerCase();
+        
+        // Only change if it's a valid language
+        if (validLanguages.includes(newLang)) {
+          setLang(newLang);
+          const langNames: Record<string, string> = {
+            'en': 'English',
+            'kn': 'Kannada',
+            'hi': 'Hindi',
+            'ta': 'Tamil',
+            'te': 'Telugu',
+            'ml': 'Malayalam',
+            'tcy': 'Tulu',
+          };
+          toast.success(`Language changed to ${langNames[newLang] || newLang}`);
+        } else {
+          toast.error(`Language "${item}" not supported`);
+        }
+        break;
+
       case 'checkout':
         router.push('/checkout');
-        break;
-
-      case 'update_quantity':
-        // item might be "3" or "quantity to 3"
-        // We need to know WHICH product. 
-        // Current prompt doesn't extract product AND quantity separately well.
-        // We'll assume the user said "Change quantity of [Product] to [Quantity]"
-        // But for now, let's just handle "Update quantity" if we can infer product.
-        // This is complex. Let's stick to simple "Increase quantity" for now?
-        // Or better, if the user is ON a product page, update that product?
-        // For now, let's handle the case where 'item' contains the number.
-        // And we might need to ask "Which product?" if not specified.
-        // Let's keep it simple: If user says "Set quantity to 3", we might not know for what.
-        // We'll skip complex quantity logic for this iteration or try to parse.
-        toast.info("Quantity updates are coming soon!"); 
-        break;
-
-      case 'add_to_wishlist':
-        // Search for product, then add.
-        if (item) {
-             // We'd need to search -> get ID -> add.
-             // For now, redirect to shop with search
-             router.push(`/shop?search=${encodeURIComponent(item)}`);
-             toast.info(`Searching ${item} to add to wishlist`);
-        }
         break;
 
       case 'navigate':
@@ -287,29 +304,72 @@ export default function VoiceAssistant() {
         else if (item.includes('home')) router.push('/');
         else if (item.includes('order')) router.push('/orders');
         else if (item.includes('wishlist')) router.push('/wishlist');
+        else if (item.includes('profile')) router.push('/profile');
         break;
 
       case 'search':
-        if (item) {
-          router.push(`/shop?search=${encodeURIComponent(item)}`);
+        // Phase 4: Enhanced search with price filters
+        if (item || entities?.product) {
+          const query = entities?.product || item;
+          let url = `/shop?search=${encodeURIComponent(query)}`;
+          
+          // Add price filters if available
+          if (entities?.maxPrice) {
+            url += `&maxPrice=${entities.maxPrice}`;
+          }
+          if (entities?.minPrice) {
+            url += `&minPrice=${entities.minPrice}`;
+          }
+          
+          router.push(url);
         }
         break;
 
       case 'add_to_cart':
-        if (item) {
-            router.push(`/shop?search=${encodeURIComponent(item)}`);
-            toast.info(`Searching for ${item} to add to cart`);
+        if (item || entities?.product) {
+          try {
+            const query = entities?.product || item;
+            // Search for the product
+            const response = await api.searchProducts(query);
+            const products = response.data as any[];
+            
+            if (products && products.length > 0) {
+              const product = products[0];
+              // Add to cart using CartContext method
+              await addToCart(product._id, entities?.quantity || 1);
+              toast.success(`Added ${product.name} to cart!`);
+            } else {
+              toast.error(`Could not find "${query}"`);
+              // Fallback: search page
+              router.push(`/shop?search=${encodeURIComponent(query)}`);
+            }
+          } catch (error) {
+            console.error('Error adding to cart:', error);
+            toast.error('Failed to add to cart');
+          }
         }
         break;
         
       case 'remove_from_cart':
-         const cartItem = items.find(i => i.productName.toLowerCase().includes(item.toLowerCase()));
-         if (cartItem) {
-             // updateQuantity(cartItem.productId, 0); // Assuming 0 removes it
-             toast.info(`Please remove ${item} manually from cart for safety`);
-             router.push('/cart');
-         }
-         break;
+        const cartItem = items.find(i => 
+          i.productName.toLowerCase().includes(item.toLowerCase())
+        );
+        if (cartItem) {
+          updateQuantity(cartItem.productId, 0);
+          toast.success(`Removed ${cartItem.productName} from cart`);
+        } else {
+          toast.error(`"${item}" not found in cart`);
+        }
+        break;
+
+      case 'add_to_wishlist':
+        // Search and navigate to product
+        if (item || entities?.product) {
+          const query = entities?.product || item;
+          router.push(`/shop?search=${encodeURIComponent(query)}`);
+          toast.info(`Searching for ${query}`);
+        }
+        break;
 
       default:
         break;

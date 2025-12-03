@@ -16,11 +16,18 @@ export interface VoiceCommandResult {
     transcript: string;
     action: string;
     item: string;
+    entities?: {
+        product?: string;
+        minPrice?: number;
+        maxPrice?: number;
+        quantity?: number;
+    };
     responseText?: string;
-    audioResponse?: string; // Base64 audio
+    audioResponse?: string;
     language?: string;
+    confidence?: number;
     error?: string;
-    timestamp?: string;
+    timestamp: string;
 }
 
 /**
