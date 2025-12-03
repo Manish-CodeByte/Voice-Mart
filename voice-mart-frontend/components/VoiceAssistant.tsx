@@ -21,7 +21,7 @@ export default function VoiceAssistant() {
   const router = useRouter();
   const { addToCart, items, updateQuantity } = useCart();
   const { isVoiceEnabled } = useVoice();
-  const { language } = useLanguage();
+  const { lang } = useLanguage(); // Fixed: use 'lang' not 'language'
   const { setTheme } = useTheme();
 
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -147,7 +147,7 @@ export default function VoiceAssistant() {
     setIsProcessing(true);
     try {
       // Send language code with the voice command
-      const result = await api.sendVoiceCommand(audioBlob, language);
+      const result = await api.sendVoiceCommand(audioBlob, lang);
 
       if (result.success) {
         console.log('Voice Command Result:', result);
