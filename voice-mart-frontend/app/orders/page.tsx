@@ -41,6 +41,60 @@ export default function OrdersPage() {
     }
   };
 
+  // Listen for voice order cancellation
+  useEffect(() => {
+    const handleVoiceCancel = (event: any) => {
+      const { orderId } = event.detail;
+      
+      // Get cancelable orders
+      const cancelableOrders = orders.filter(o => 
+        o.status === 'pending' || o.status === 'processing'
+      );
+      
+      if (cancelableOrders.length === 0) {
+        toast.error('No cancelable orders found');
+        return;
+      }
+      
+      // Check if orderId is a number (order index)
+      const orderNumber = parseInt(orderId);
+      if (!isNaN(orderNumber) && orderNumber >= 1 && orderNumber <= cancelableOrders.length) {
+        const order = cancelableOrders[orderNumber - 1];
+        console.log('Order to cancel:', order); // Debug
+        const productNames = order.items.map((item: any) => item.productName).join(', ');
+        const orderIdToCancel = order._id || order.id;
+        console.log('Order ID to cancel:', orderIdToCancel); // Debug
+        toast.info(`Cancelling order ${orderNumber}: ${productNames}`);
+        handleCancelOrder(orderIdToCancel);
+        return;
+      }
+      
+      if (cancelableOrders.length === 1) {
+        // Only one order, cancel it
+        const order = cancelableOrders[0];
+        console.log('Single order to cancel:', order); // Debug
+        const productNames = order.items.map((item: any) => item.productName).join(', ');
+        const orderIdToCancel = order._id || order.id;
+        console.log('Order ID to cancel:', orderIdToCancel); // Debug
+        toast.info(`Cancelling order: ${productNames}`);
+        handleCancelOrder(orderIdToCancel);
+      } else {
+        // Multiple orders - show list and ask user
+        const orderList = cancelableOrders.map((order: any, index: number) => {
+          const productNames = order.items.map((item: any) => item.productName).join(', ');
+          return `${index + 1}. ${productNames} - ₹${order.totalAmount}`;
+        }).join('\n');
+        
+        toast.info(`Multiple orders found:\n${orderList}\n\nPlease say "cancel order 1" or click to cancel`, {
+          duration: 10000,
+        });
+      }
+    };
+
+    window.addEventListener('voice-cancel-order', handleVoiceCancel);
+    return () => window.removeEventListener('voice-cancel-order', handleVoiceCancel);
+  }, [orders]);
+
   const handleCancelOrder = async (orderId: string) => {
 
 

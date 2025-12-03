@@ -160,6 +160,7 @@ export class OllamaService {
 - **set_theme**: Change theme (dark/light)
 - **change_language**: Switch app language (en, hi, kn, ta, te, ml)
 - **select_payment**: Choose payment method (cod, card, upi, netbanking)
+- **cancel_order**: Cancel an order (use order ID from context or item)
 - **unknown**: Cannot understand
 
 **OUTPUT FORMAT (JSON ONLY):**
@@ -198,6 +199,12 @@ Output: {"action":"select_payment","item":"cod","entities":{},"responseText":"Se
 
 Input: "use card payment"
 Output: {"action":"select_payment","item":"card","entities":{},"responseText":"Selected Card Payment","language":"en-IN","confidence":0.98}
+
+Input: "cancel this order"
+Output: {"action":"cancel_order","item":"current_order","entities":{},"responseText":"Cancelling order","language":"en-IN","confidence":0.95}
+
+Input: "cancel order 12345"
+Output: {"action":"cancel_order","item":"12345","entities":{"orderId":"12345"},"responseText":"Cancelling order 12345","language":"en-IN","confidence":0.98}
 
 **NOW PROCESS THE USER INPUT AND RESPOND WITH JSON ONLY:**`;
 

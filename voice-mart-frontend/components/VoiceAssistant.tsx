@@ -336,6 +336,15 @@ export default function VoiceAssistant() {
         toast.success(`Payment method: ${item}`);
         break;
 
+      case 'cancel_order':
+        // Dispatch custom event for orders page to handle
+        window.dispatchEvent(new CustomEvent('voice-cancel-order', { 
+          detail: { orderId: entities?.orderId || item } 
+        }));
+        
+        toast.info(`Cancelling order...`);
+        break;
+
       case 'checkout':
         router.push('/checkout');
         break;
@@ -373,12 +382,23 @@ export default function VoiceAssistant() {
           // Add price filters if available
           if (entities?.maxPrice) {
             url += `&maxPrice=${entities.maxPrice}`;
+            toast.info(`Searching for ${query} under ₹${entities.maxPrice}`);
           }
           if (entities?.minPrice) {
             url += `&minPrice=${entities.minPrice}`;
           }
           
           router.push(url);
+        } else {
+          // Voice-only price search (e.g., "show products under 5000")
+          if (entities?.maxPrice || entities?.minPrice) {
+            let url = `/shop?`;
+            if (entities.maxPrice) url += `maxPrice=${entities.maxPrice}`;
+            if (entities.minPrice) url += `&minPrice=${entities.minPrice}`;
+            
+            toast.info(`Searching products in your price range`);
+            router.push(url);
+          }
         }
         break;
 
