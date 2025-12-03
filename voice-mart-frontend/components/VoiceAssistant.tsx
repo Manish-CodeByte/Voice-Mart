@@ -13,6 +13,7 @@ export default function VoiceAssistant() {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [voicesLoaded, setVoicesLoaded] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -31,10 +32,23 @@ export default function VoiceAssistant() {
     audioRef.current = new Audio();
     audioRef.current.onended = () => setIsPlaying(false);
     
+    // Load voices for TTS
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        console.log('✅ Voices loaded:', voices.length);
+        setVoicesLoaded(true);
+      }
+    };
+    
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    
     return () => {
         if (audioContextRef.current) {
             audioContextRef.current.close();
         }
+        window.speechSynthesis.onvoiceschanged = null;
     };
   }, []);
 
@@ -158,32 +172,54 @@ export default function VoiceAssistant() {
 
   const speakFallback = (text: string) => {
     if ('speechSynthesis' in window) {
+      console.log('🗣️ Speaking:', text);
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
       // Try to find a good voice
       const voices = window.speechSynthesis.getVoices();
+      console.log('🎙️ Available voices:', voices.length);
+      
       // Prefer Indian English female voice if available, else any English
       const preferredVoice = voices.find(v => v.lang.includes('IN') && v.name.includes('Female')) 
                           || voices.find(v => v.lang.includes('IN'))
-                          || voices.find(v => v.lang.includes('en'));
+                          || voices.find(v => v.lang.includes('en'))
+                          || voices[0];
                           
-      if (preferredVoice) utterance.voice = preferredVoice;
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+        console.log('🎤 Using voice:', preferredVoice.name);
+      }
       
-      utterance.onstart = () => setIsPlaying(true);
-      utterance.onend = () => setIsPlaying(false);
+      utterance.onstart = () => {
+        console.log('▶️ TTS Started');
+        setIsPlaying(true);
+      };
+      utterance.onend = () => {
+        console.log('⏹️ TTS Ended');
+        setIsPlaying(false);
+      };
+      utterance.onerror = (e) => {
+        console.error('❌ TTS Error:', e);
+        setIsPlaying(false);
+      };
       
       window.speechSynthesis.speak(utterance);
+    } else {
+      console.error('❌ Speech synthesis not supported');
     }
   };
 
   useEffect(() => {
-    if (isVoiceEnabled) {
-        // Greet the user
-        speakFallback("Hello! I am your voice assistant. How can I help you today?");
+    if (isVoiceEnabled && voicesLoaded) {
+        // Greet the user after voices are loaded
+        console.log('👋 Greeting user...');
+        setTimeout(() => {
+          speakFallback("Hello! I am your voice assistant. How can I help you today?");
+        }, 500);
     }
-  }, [isVoiceEnabled]);
+  }, [isVoiceEnabled, voicesLoaded]);
 
   const playAudio = (base64Audio: string) => {
     if (audioRef.current) {
