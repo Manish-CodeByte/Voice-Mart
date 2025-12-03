@@ -201,10 +201,19 @@ Input: "use card payment"
 Output: {"action":"select_payment","item":"card","entities":{},"responseText":"Selected Card Payment","language":"en-IN","confidence":0.98}
 
 Input: "cancel this order"
-Output: {"action":"cancel_order","item":"current_order","entities":{},"responseText":"Cancelling order","language":"en-IN","confidence":0.95}
+Output: {"action":"cancel_order","item":"latest_order","entities":{},"responseText":"Cancelling order","language":"en-IN","confidence":0.95}
 
-Input: "cancel order 12345"
-Output: {"action":"cancel_order","item":"12345","entities":{"orderId":"12345"},"responseText":"Cancelling order 12345","language":"en-IN","confidence":0.98}
+Input: "cancel latest order"
+Output: {"action":"cancel_order","item":"latest_order","entities":{},"responseText":"Cancelling latest order","language":"en-IN","confidence":0.98}
+
+Input: "cancel order 1"
+Output: {"action":"cancel_order","item":"1","entities":{"orderNumber":"1"},"responseText":"Cancelling order 1","language":"en-IN","confidence":0.98}
+
+Input: "cancel order 3"
+Output: {"action":"cancel_order","item":"3","entities":{"orderNumber":"3"},"responseText":"Cancelling order 3","language":"en-IN","confidence":0.98}
+
+Input: "cancel acer predator"
+Output: {"action":"cancel_order","item":"acer predator","entities":{"product":"acer predator"},"responseText":"Cancelling order with Acer Predator","language":"en-IN","confidence":0.95}
 
 **NOW PROCESS THE USER INPUT AND RESPOND WITH JSON ONLY:**`;
 

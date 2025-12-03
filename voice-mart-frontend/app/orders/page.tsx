@@ -45,6 +45,7 @@ export default function OrdersPage() {
   useEffect(() => {
     const handleVoiceCancel = (event: any) => {
       const { orderId } = event.detail;
+      console.log('Voice cancel orderId:', orderId); // Debug
       
       // Get cancelable orders
       const cancelableOrders = orders.filter(o => 
@@ -56,15 +57,43 @@ export default function OrdersPage() {
         return;
       }
       
+      // Check for "latest" or "current_order" (including "latest_order")
+      const orderIdLower = orderId.toLowerCase();
+      if (orderIdLower === 'current_order' || 
+          orderIdLower.includes('latest') || 
+          orderIdLower === 'latest_order') {
+        const order = cancelableOrders[0]; // First order is latest
+        console.log('Latest order:', order); // Debug
+        const productNames = order.items.map((item: any) => item.productName).join(', ');
+        const orderIdToCancel = order.id || order._id;
+        console.log('Cancelling order ID:', orderIdToCancel); // Debug
+        toast.info(`Cancelling latest order: ${productNames}`);
+        handleCancelOrder(orderIdToCancel);
+        return;
+      }
+      
       // Check if orderId is a number (order index)
       const orderNumber = parseInt(orderId);
       if (!isNaN(orderNumber) && orderNumber >= 1 && orderNumber <= cancelableOrders.length) {
         const order = cancelableOrders[orderNumber - 1];
-        console.log('Order to cancel:', order); // Debug
         const productNames = order.items.map((item: any) => item.productName).join(', ');
-        const orderIdToCancel = order._id || order.id;
-        console.log('Order ID to cancel:', orderIdToCancel); // Debug
+        const orderIdToCancel = order.id || order._id;
         toast.info(`Cancelling order ${orderNumber}: ${productNames}`);
+        handleCancelOrder(orderIdToCancel);
+        return;
+      }
+      
+      // Check if orderId matches a product name
+      const orderByProduct = cancelableOrders.find(order => {
+        return order.items.some((item: any) => 
+          item.productName.toLowerCase().includes(orderId.toLowerCase())
+        );
+      });
+      
+      if (orderByProduct) {
+        const productNames = orderByProduct.items.map((item: any) => item.productName).join(', ');
+        const orderIdToCancel = orderByProduct.id || orderByProduct._id;
+        toast.info(`Cancelling order with: ${productNames}`);
         handleCancelOrder(orderIdToCancel);
         return;
       }
@@ -72,20 +101,25 @@ export default function OrdersPage() {
       if (cancelableOrders.length === 1) {
         // Only one order, cancel it
         const order = cancelableOrders[0];
-        console.log('Single order to cancel:', order); // Debug
         const productNames = order.items.map((item: any) => item.productName).join(', ');
-        const orderIdToCancel = order._id || order.id;
-        console.log('Order ID to cancel:', orderIdToCancel); // Debug
+        const orderIdToCancel = order.id || order._id;
         toast.info(`Cancelling order: ${productNames}`);
         handleCancelOrder(orderIdToCancel);
       } else {
         // Multiple orders - show list and ask user
         const orderList = cancelableOrders.map((order: any, index: number) => {
           const productNames = order.items.map((item: any) => item.productName).join(', ');
-          return `${index + 1}. ${productNames} - ₹${order.totalAmount}`;
+          console.log('Order items:', order.items); // Debug
+          // Calculate total from items
+          const total = order.items.reduce((sum: number, item: any) => {
+            console.log(`Item: ${item.productName}, Price: ${item.price}, Qty: ${item.quantity}`); // Debug
+            return sum + (item.price * item.quantity);
+          }, 0);
+          console.log('Calculated total:', total); // Debug
+          return `${index + 1}. ${productNames} - ₹${total}`;
         }).join('\n');
         
-        toast.info(`Multiple orders found:\n${orderList}\n\nPlease say "cancel order 1" or click to cancel`, {
+        toast.info(`Multiple orders found:\n${orderList}\n\nSay "cancel order 1" or "cancel latest order"`, {
           duration: 10000,
         });
       }

@@ -338,8 +338,9 @@ export default function VoiceAssistant() {
 
       case 'cancel_order':
         // Dispatch custom event for orders page to handle
+        const orderIdentifier = entities?.product || item;
         window.dispatchEvent(new CustomEvent('voice-cancel-order', { 
-          detail: { orderId: entities?.orderId || item } 
+          detail: { orderId: orderIdentifier } 
         }));
         
         toast.info(`Cancelling order...`);
