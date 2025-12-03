@@ -364,18 +364,44 @@ export default function VoiceAssistant() {
           try {
             const query = entities?.product || item;
             
-            // If we have productId from context, use it directly
+            // If we have productId from context, use it directly (most reliable)
             if (entities?.productId) {
               await addToCart(entities.productId, entities?.quantity || 1);
               toast.success(`Added ${query} to cart!`);
             } else {
-              // Otherwise, search for the product
+              // Smart search: try multiple strategies
               const response = await api.searchProducts(query);
-              const products = response.data as any[];
+              let products = response.data as any[];
               
-              if (products && products.length > 0) {
-                const product = products[0];
-                // Add to cart using CartContext method
+              // Strategy 1: Exact match
+              let product = products?.find(p => 
+                p.name.toLowerCase() === query.toLowerCase()
+              );
+              
+              // Strategy 2: Partial match (contains all keywords)
+              if (!product && products?.length > 0) {
+                const keywords = query.toLowerCase().split(' ').filter((k: string) => k.length > 2);
+                product = products.find(p => {
+                  const productName = p.name.toLowerCase();
+                  return keywords.every((keyword: string) => productName.includes(keyword));
+                });
+              }
+              
+              // Strategy 3: Any keyword match (most lenient)
+              if (!product && products?.length > 0) {
+                const keywords = query.toLowerCase().split(' ').filter((k: string) => k.length > 2);
+                product = products.find(p => {
+                  const productName = p.name.toLowerCase();
+                  return keywords.some((keyword: string) => productName.includes(keyword));
+                });
+              }
+              
+              // Strategy 4: Just use first result if any products found
+              if (!product && products?.length > 0) {
+                product = products[0];
+              }
+              
+              if (product) {
                 await addToCart(product._id, entities?.quantity || 1);
                 toast.success(`Added ${product.name} to cart!`);
               } else {

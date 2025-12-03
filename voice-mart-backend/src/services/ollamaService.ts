@@ -39,10 +39,10 @@ function preprocessCommand(text: string): string {
         processed = processed.replace(regex, correct);
     });
     
-    // Normalize common phrases
-    processed = processed.replace(/\bthis item\b/gi, 'current_product');
-    processed = processed.replace(/\bthat one\b/gi, 'current_product');
-    processed = processed.replace(/\bthis one\b/gi, 'current_product');
+    // Normalize common phrases (including STT mishearings)
+    processed = processed.replace(/\b(this|dis|dat|the|current)\s+(item|product|one)\b/gi, 'current_product');
+    processed = processed.replace(/\b(that|dis)\s+(one|item)\b/gi, 'current_product');
+    processed = processed.replace(/\bthis\s+one\b/gi, 'current_product');
     
     logger.info(`Preprocessed: "${text}" -> "${processed}"`);
     return processed;
@@ -140,6 +140,8 @@ export class OllamaService {
 
 **SPECIAL HANDLING:**
 - If input contains "current_product" and context exists, use context.productName
+- **IMPORTANT:** If user mentions a specific product name (e.g., "MacBook", "iPhone"), use that name, NOT the context
+- Only use context when user says "this", "current", or similar pronouns
 - If price range is in entities, include it in the search query
 - Handle variations: "cart"/"card", "phone"/"fone", "laptop"/"lappy"
 
@@ -205,8 +207,9 @@ Output: {"action":"change_language","item":"kn","entities":{},"responseText":"à²
                 ...parsed.entities,
             };
             
-            // If context has productId, add it to entities
-            if (this.conversationContext?.productId) {
+            // Only add productId from context if user said "this item" or "current product"
+            // Don't override when user mentions a specific product name
+            if (this.conversationContext?.productId && preprocessed.includes('current_product')) {
                 mergedEntities.productId = this.conversationContext.productId;
             }
 
