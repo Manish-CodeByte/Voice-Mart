@@ -21,7 +21,7 @@ export class TTSService {
         }
 
         try {
-            logger.info(`🔊 Generating Google TTS for: "${text.substring(0, 50)}..." (lang: ${languageCode})`);
+            logger.info(`Generating Google TTS for: "${text.substring(0, 50)}..." (lang: ${languageCode})`);
 
             // Map standard language codes to Google TTS voice names if needed
             // For now, let Google choose the standard voice for the language
@@ -54,11 +54,11 @@ export class TTSService {
                 throw new Error('No audio content received from Google TTS');
             }
 
-            logger.info(`✅ TTS generated successfully`);
+            logger.info('TTS generated successfully');
             return data.audioContent;
 
         } catch (error: any) {
-            logger.error('❌ TTS generation failed:', error);
+            logger.error('TTS generation failed:', error);
             throw new Error(`TTS Error: ${error.message}`);
         }
     }

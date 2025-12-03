@@ -60,10 +60,10 @@ export function cleanupAudioFile(audioPath: string): void {
     try {
         if (fs.existsSync(audioPath)) {
             fs.unlinkSync(audioPath);
-            logger.info(`🗑️ Cleaned up audio file: ${audioPath}`);
+            logger.info(`Cleaned up audio file: ${audioPath}`);
         }
     } catch (error) {
-        logger.error('⚠️ Failed to cleanup audio file:', error);
+        logger.error('Failed to cleanup audio file:', error);
     }
 }
 
@@ -139,11 +139,11 @@ Return ONLY valid JSON.`;
                 const response = await result.response;
                 responseText = response.text();
                 
-                logger.info(`✅ Success with gemini-2.0-flash-exp`);
+                logger.info('Success with gemini-2.0-flash-exp');
                 break; // Success! Exit loop
                 
             } catch (error: any) {
-                logger.warn(`⚠️ Attempt ${attempt} failed: ${error.message}`);
+                logger.warn(`Attempt ${attempt} failed: ${error.message}`);
                 
                 // Check if it's a rate limit error (429)
                 if (error.message.includes('429') || error.message.includes('quota')) {
@@ -158,18 +158,18 @@ Return ONLY valid JSON.`;
                         logger.info(`⏳ Rate limited. Waiting ${Math.ceil(retryDelay/1000)}s before retry...`);
                         await new Promise(resolve => setTimeout(resolve, retryDelay));
                     } else {
-                        logger.error('❌ Max retries reached. Falling back to regex.');
+                        logger.error('Max retries reached. Falling back to regex.');
                         return fallbackToRegex(text);
                     }
                 } else {
                     // Non-rate-limit error, fallback immediately
-                    logger.error(`❌ Non-recoverable error: ${error.message}`);
+                    logger.error(`Non-recoverable error: ${error.message}`);
                     return fallbackToRegex(text);
                 }
             }
         }
 
-        logger.info(`✅ Gemini response: ${responseText}`);
+        logger.info(`Gemini response: ${responseText}`);
 
         // Parse JSON response
         try {
@@ -191,12 +191,12 @@ Return ONLY valid JSON.`;
             };
 
         } catch (parseError) {
-            logger.error('❌ Failed to parse Gemini response:', parseError);
+            logger.error('Failed to parse Gemini response:', parseError);
             return fallbackToRegex(text);
         }
 
     } catch (error: any) {
-        logger.error('❌ Error in processTextCommand:', error);
+        logger.error('Error in processTextCommand:', error);
         return fallbackToRegex(text);
     }
 }

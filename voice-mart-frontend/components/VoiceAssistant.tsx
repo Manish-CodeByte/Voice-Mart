@@ -36,7 +36,7 @@ export default function VoiceAssistant() {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
       if (voices.length > 0) {
-        console.log('✅ Voices loaded:', voices.length);
+        console.log('Voices loaded:', voices.length);
         setVoicesLoaded(true);
       }
     };
@@ -172,7 +172,7 @@ export default function VoiceAssistant() {
 
   const speakFallback = (text: string) => {
     if ('speechSynthesis' in window) {
-      console.log('🗣️ Speaking:', text);
+      console.log('Speaking:', text);
       
       // CRITICAL FIX: Resume speechSynthesis to bypass Chrome's autoplay policy
       if (window.speechSynthesis.paused) {
@@ -185,7 +185,7 @@ export default function VoiceAssistant() {
       const utterance = new SpeechSynthesisUtterance(text);
       // Try to find a good voice
       const voices = window.speechSynthesis.getVoices();
-      console.log('🎙️ Available voices:', voices.length);
+      console.log('Available voices:', voices.length);
       
       // Prefer Indian English female voice if available, else any English
       const preferredVoice = voices.find(v => v.lang.includes('IN') && v.name.includes('Female')) 
@@ -195,19 +195,19 @@ export default function VoiceAssistant() {
                           
       if (preferredVoice) {
         utterance.voice = preferredVoice;
-        console.log('🎤 Using voice:', preferredVoice.name);
+        console.log('Using voice:', preferredVoice.name);
       }
       
       utterance.onstart = () => {
-        console.log('▶️ TTS Started');
+        console.log('TTS Started');
         setIsPlaying(true);
       };
       utterance.onend = () => {
-        console.log('⏹️ TTS Ended');
+        console.log('TTS Ended');
         setIsPlaying(false);
       };
       utterance.onerror = (e) => {
-        console.error('❌ TTS Error:', e);
+        console.error('TTS Error:', e);
         console.error('Error details:', e.error, e.charIndex);
         setIsPlaying(false);
       };
@@ -215,17 +215,17 @@ export default function VoiceAssistant() {
       // Small delay to ensure voices are ready
       setTimeout(() => {
         window.speechSynthesis.speak(utterance);
-        console.log('📢 Speech queued');
+        console.log('Speech queued');
       }, 100);
     } else {
-      console.error('❌ Speech synthesis not supported');
+      console.error('Speech synthesis not supported');
     }
   };
 
   useEffect(() => {
     if (isVoiceEnabled && voicesLoaded) {
         // Greet the user after voices are loaded
-        console.log('👋 Greeting user...');
+        console.log('Greeting user...');
         setTimeout(() => {
           speakFallback("Hello! I am your voice assistant. How can I help you today?");
         }, 500);

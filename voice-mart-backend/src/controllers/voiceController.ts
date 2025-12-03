@@ -51,7 +51,7 @@ export const transcribeMultiLang = async (req: Request, res: Response, next: Nex
 
 export const processVoiceCommand = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        logger.info('📥 Received voice command request');
+        logger.info('Received voice command request');
 
         // Check if file was uploaded
         if (!req.file) {
@@ -62,9 +62,9 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
             return;
         }
 
-        logger.info(`📁 File uploaded: ${req.file.filename}`);
-        logger.info(`📊 File size: ${req.file.size} bytes`);
-        logger.info(`🎵 MIME type: ${req.file.mimetype}`);
+        logger.info(`File uploaded: ${req.file.filename}`);
+        logger.info(`File size: ${req.file.size} bytes`);
+        logger.info(`MIME type: ${req.file.mimetype}`);
 
         // Process the audio file with STT first
         const audioBuffer = fs.readFileSync(req.file.path);
@@ -72,11 +72,11 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
         
         // Get language from request body (sent by frontend)
         const languageCode = req.body.languageCode || 'en-IN';
-        logger.info(`🗣️ Processing voice command in language: ${languageCode}`);
+        logger.info(`Processing voice command in language: ${languageCode}`);
 
         // 1. Transcribe Audio (Google STT)
         const sttResult = await sttService.transcribeAudio(audioBase64, languageCode);
-        logger.info(`📝 Transcribed text: ${sttResult.text} (Detected: ${sttResult.language})`);
+        logger.info(`Transcribed text: ${sttResult.text} (Detected: ${sttResult.language})`);
 
         // 2. Understand Intent (Local Ollama AI)
         const { processTextCommand } = await import('../services/ollamaService.js');
@@ -106,7 +106,7 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
         res.json(result);
 
     } catch (error: any) {
-        logger.error('❌ Error processing voice command:', error);
+        logger.error('Error processing voice command:', error);
 
         // Clean up file if it exists
         if (req.file) {

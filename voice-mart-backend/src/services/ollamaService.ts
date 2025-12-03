@@ -19,7 +19,7 @@ export class OllamaService {
      */
     async processTextCommand(text: string, languageHint?: string): Promise<VoiceCommandResult> {
         try {
-            logger.info(`🧠 Ollama Processing: "${text}" (Model: ${this.model}, Hint: ${languageHint})`);
+            logger.info(`Ollama Processing: "${text}" (Model: ${this.model}, Hint: ${languageHint})`);
 
             const prompt = `You are a highly intelligent, multilingual voice assistant for "Voice Mart", an advanced e-commerce platform.
 Your goal is to understand the user's intent and return a structured JSON response.
@@ -73,7 +73,7 @@ Your goal is to understand the user's intent and return a structured JSON respon
             });
 
             const content = response.message.content;
-            logger.info(`✅ Ollama Response: ${content}`);
+            logger.info(`Ollama Response: ${content}`);
 
             const parsed = JSON.parse(content);
 
@@ -88,11 +88,11 @@ Your goal is to understand the user's intent and return a structured JSON respon
             };
 
         } catch (error: any) {
-            logger.error('❌ Ollama Error:', error);
+            logger.error('Ollama Error:', error);
             
             // Fallback if model not found or other error
             if (error.message.includes('not found')) {
-                logger.warn(`⚠️ Model '${this.model}' not found. Please run: ollama pull ${this.model}`);
+                logger.warn(`Model '${this.model}' not found. Please run: ollama pull ${this.model}`);
             }
             
             // Import regex fallback locally to avoid circular dependency if possible, 

@@ -51,7 +51,7 @@ export class STTService {
         }
 
         try {
-            logger.info(`🎙️ Calling Google STT...`);
+            logger.info('Calling Google STT...');
 
             const response = await fetch(
                 `https://speech.googleapis.com/v1/speech:recognize?key=${this.apiKey}`,
@@ -83,7 +83,7 @@ export class STTService {
             const confidence = alternative?.confidence || 0;
             const detectedLanguage = result?.languageCode || config.languageCode;
 
-            logger.info(`✅ Transcription: "${transcript}" (Lang: ${detectedLanguage})`);
+            logger.info(`Transcription: "${transcript}" (Lang: ${detectedLanguage})`);
 
             return {
                 text: transcript,
