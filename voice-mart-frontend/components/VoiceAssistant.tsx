@@ -173,6 +173,12 @@ export default function VoiceAssistant() {
   const speakFallback = (text: string) => {
     if ('speechSynthesis' in window) {
       console.log('🗣️ Speaking:', text);
+      
+      // CRITICAL FIX: Resume speechSynthesis to bypass Chrome's autoplay policy
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+      
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
 
@@ -202,10 +208,15 @@ export default function VoiceAssistant() {
       };
       utterance.onerror = (e) => {
         console.error('❌ TTS Error:', e);
+        console.error('Error details:', e.error, e.charIndex);
         setIsPlaying(false);
       };
       
-      window.speechSynthesis.speak(utterance);
+      // Small delay to ensure voices are ready
+      setTimeout(() => {
+        window.speechSynthesis.speak(utterance);
+        console.log('📢 Speech queued');
+      }, 100);
     } else {
       console.error('❌ Speech synthesis not supported');
     }
