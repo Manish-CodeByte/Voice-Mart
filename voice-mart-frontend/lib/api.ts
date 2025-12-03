@@ -93,6 +93,14 @@ export class ApiClient {
     });
   }
 
+  async addToCart(productId: string, quantity: number, token: string) {
+    return this.request('/cart', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ productId, quantity }),
+    });
+  }
+
   async updateCartItem(productId: string, quantity: number, token: string) {
     return this.request(`/cart/${productId}`, {
       method: 'PUT',

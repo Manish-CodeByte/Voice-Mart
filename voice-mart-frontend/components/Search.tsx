@@ -36,10 +36,11 @@ export default function Search() {
       try {
         const response = await api.getSearchSuggestions(query);
         if (response.success && response.data) {
-          setSuggestions(response.data);
+          setSuggestions(Array.isArray(response.data) ? response.data : []);
         }
       } catch (error) {
         console.error('Error fetching suggestions:', error);
+        setSuggestions([]);
       } finally {
         setLoading(false);
       }
