@@ -394,6 +394,18 @@ export class ApiClient {
 
     return response.json();
   }
+
+  async searchByImage(imageFile: File) {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    const response = await fetch(`${this.baseURL}/search/image`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    return response.json();
+  }
 }
 
 export const api = new ApiClient();

@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@clerk/express": "^1.7.53",
+    "@google-cloud/vision": "^5.3.4",
     "@google/generative-ai": "^0.24.1",
     "@huggingface/inference": "^4.13.4",
     "@types/bcrypt": "^5.0.2",

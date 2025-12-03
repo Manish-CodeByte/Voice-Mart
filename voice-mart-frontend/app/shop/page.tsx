@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import CustomSelect from '@/components/CustomSelect';
-import { Search, Filter, ArrowUpDown } from 'lucide-react';
+import { Search, Filter, ArrowUpDown, Camera, X } from 'lucide-react';
 import { Trans } from '@/app/context/Translator';
+import { toast } from 'sonner';
 
 export default function ShopPage() {
   const searchParams = useSearchParams();
@@ -17,6 +18,11 @@ export default function ShopPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('');
   const [sortBy, setSortBy] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [imageSearching, setImageSearching] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Read URL parameters on mount
   useEffect(() => {
@@ -115,6 +121,86 @@ export default function ShopPage() {
     setFilteredProducts(result);
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image size must be less than 10MB');
+      return;
+    }
+
+    setSelectedImage(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+      setShowImageModal(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageSearch = async () => {
+    if (!selectedImage) return;
+
+    setImageSearching(true);
+    setShowImageModal(false);
+
+    try {
+      toast.info('Searching for similar products...');
+      
+      // Call backend API
+      const response = await api.searchByImage(selectedImage);
+      
+      if (response.success && response.data) {
+        const products = response.data;
+        const keywords = response.metadata?.keywords || [];
+        
+        // Check if we have a very high confidence match (exact product)
+        if (products.length > 0) {
+          const topProduct = products[0];
+          
+          // If we have labels/text that strongly match the top product, navigate to it
+          const topProductName = topProduct.name.toLowerCase();
+          const hasStrongMatch = keywords.some((keyword: string) => 
+            topProductName.includes(keyword.toLowerCase()) && keyword.length > 3
+          );
+          
+          // If only 1 product or very strong match, go directly to product page
+          if (products.length === 1 || hasStrongMatch) {
+            toast.success(`Found: ${topProduct.name}`);
+            window.location.href = `/shop/${topProduct.id}`;
+            return;
+          }
+        }
+        
+        // Multiple products - show search results
+        setProducts(products);
+        setFilteredProducts(products);
+        
+        toast.success(`Found ${products.length} similar products: ${keywords.slice(0, 3).join(', ')}`);
+      } else {
+        toast.error('No products found matching the image');
+      }
+      
+    } catch (error) {
+      console.error('Image search error:', error);
+      toast.error('Failed to search by image. Please try again.');
+    } finally {
+      setImageSearching(false);
+      setSelectedImage(null);
+      setImagePreview(null);
+    }
+  };
+
   const categories = [
     'Mobiles',
     'Laptops',
@@ -160,7 +246,25 @@ export default function ShopPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products by name, category, or tags..."
-                className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-border bg-background focus:border-primary focus:outline-none transition-colors"
+                className="w-full pl-12 pr-16 py-3 rounded-xl border-2 border-border bg-background focus:border-primary focus:outline-none transition-colors"
+              />
+              
+              {/* Image Search Button */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-accent transition-all"
+                title="Search by image"
+              >
+                <Camera className="h-5 w-5 text-muted-foreground hover:text-primary" />
+              </button>
+              
+              {/* Hidden File Input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
               />
             </div>
 
@@ -245,6 +349,59 @@ export default function ShopPage() {
           </div>
         )}
       </div>
+
+      {/* Image Preview Modal */}
+      {showImageModal && imagePreview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl border-2 border-border max-w-2xl w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Search by Image</h2>
+              <button
+                onClick={() => {
+                  setShowImageModal(false);
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                }}
+                className="p-2 rounded-lg hover:bg-accent transition-all"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full h-auto max-h-96 object-contain rounded-lg bg-accent"
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  setShowImageModal(false);
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                }}
+                className="flex-1 px-6 py-3 rounded-xl border-2 border-border hover:bg-accent transition-all font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleImageSearch}
+                disabled={imageSearching}
+                className="flex-1 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all disabled:opacity-50"
+              >
+                {imageSearching ? 'Searching...' : 'Search'}
+              </button>
+            </div>
+
+            <p className="text-sm text-muted-foreground mt-4 text-center">
+              Note: Image search requires Google Vision API to be enabled
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
