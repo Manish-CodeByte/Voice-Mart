@@ -17,6 +17,8 @@ export class STTService {
         this.apiKey = process.env.VITE_GOOGLE_STT_KEY || process.env.GOOGLE_STT_KEY || '';
         if (!this.apiKey) {
             logger.error('Google STT API key not configured');
+        } else {
+            logger.info('STT Service initialized with Google Cloud API');
         }
     }
 
@@ -25,14 +27,14 @@ export class STTService {
         return this.callGoogleSTT(audioBase64, {
             encoding: 'WEBM_OPUS',
             sampleRateHertz: 48000,
-            languageCode: 'en-IN', // Primary language
-            alternativeLanguageCodes: ['hi-IN', 'kn-IN', 'ta-IN', 'te-IN'], // Auto-detect these
+            languageCode: languageCode, // Use provided language as primary
+            alternativeLanguageCodes: ['en-IN', 'hi-IN', 'kn-IN', 'ta-IN', 'te-IN'], // Auto-detect others
             enableAutomaticPunctuation: true,
             model: 'latest_long',
         });
     }
 
-    async transcribeMultiLang(audioBase64: string, languages: string[] = ['en-IN', 'hi-IN', 'kn-IN']): Promise<VoiceTranscriptionResponse> {
+    async transcribeMultiLang(audioBase64: string, languages: string[]): Promise<VoiceTranscriptionResponse> {
         return this.callGoogleSTT(audioBase64, {
             encoding: 'WEBM_OPUS',
             sampleRateHertz: 48000,
@@ -49,13 +51,16 @@ export class STTService {
         }
 
         try {
-            logger.info(`Calling Google STT with language: ${config.languageCode}`);
+            logger.info(`🎙️ Calling Google STT...`);
 
             const response = await fetch(
                 `https://speech.googleapis.com/v1/speech:recognize?key=${this.apiKey}`,
                 {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Referer': 'http://localhost:3000/' // Add Referer to satisfy API key restriction
+                    },
                     body: JSON.stringify({
                         config,
                         audio: {
@@ -78,7 +83,7 @@ export class STTService {
             const confidence = alternative?.confidence || 0;
             const detectedLanguage = result?.languageCode || config.languageCode;
 
-            logger.info(`Transcription success: ${transcript.substring(0, 50)}...`);
+            logger.info(`✅ Transcription: "${transcript}" (Lang: ${detectedLanguage})`);
 
             return {
                 text: transcript,

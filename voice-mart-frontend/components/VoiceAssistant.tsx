@@ -38,7 +38,7 @@ export default function VoiceAssistant() {
     };
   }, []);
 
-  if (!isVoiceEnabled) return null;
+
 
   const startListening = async () => {
     try {
@@ -265,6 +265,8 @@ export default function VoiceAssistant() {
         break;
     }
   };
+
+  if (!isVoiceEnabled) return null;
 
   return (
     <button

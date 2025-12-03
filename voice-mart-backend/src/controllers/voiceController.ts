@@ -70,13 +70,18 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
         const audioBuffer = fs.readFileSync(req.file.path);
         const audioBase64 = audioBuffer.toString('base64');
         
-        // 1. Transcribe Audio
-        const sttResult = await sttService.transcribeAudio(audioBase64);
-        logger.info(`📝 Transcribed text: ${sttResult.text}`);
+        // Get language from request body (sent by frontend)
+        const languageCode = req.body.languageCode || 'en-IN';
+        logger.info(`🗣️ Processing voice command in language: ${languageCode}`);
 
-        // 2. Understand Intent (Local NLP - No API needed!)
-        const { processTextCommand } = await import('../services/localNlpService.js');
-        const result = await processTextCommand(sttResult.text);
+        // 1. Transcribe Audio (Google STT)
+        const sttResult = await sttService.transcribeAudio(audioBase64, languageCode);
+        logger.info(`📝 Transcribed text: ${sttResult.text} (Detected: ${sttResult.language})`);
+
+        // 2. Understand Intent (Local Ollama AI)
+        const { processTextCommand } = await import('../services/ollamaService.js');
+        // Pass the language code as a hint to Ollama
+        const result = await processTextCommand(sttResult.text, languageCode);
 
         // Generate audio response if text response exists
         if (result.success && result.responseText) {
