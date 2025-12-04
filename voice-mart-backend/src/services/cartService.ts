@@ -16,7 +16,6 @@ class CartService {
       const doc = await this.collection.doc(userId).get();
       
       if (!doc.exists) {
-        // Return empty cart
         return {
           userId,
           items: [],
@@ -56,11 +55,9 @@ class CartService {
       const existingItemIndex = cart!.items.findIndex((item: CartItem) => item.productId === dto.productId);
 
       if (existingItemIndex >= 0) {
-        // Update quantity
         cart!.items[existingItemIndex].quantity += dto.quantity;
         cart!.items[existingItemIndex].addedAt = new Date();
       } else {
-        // Add new item
         const newItem: CartItem = {
           productId: dto.productId,
           productName: product.name,
@@ -72,7 +69,6 @@ class CartService {
         cart!.items.push(newItem);
       }
 
-      // Recalculate totals
       cart!.totalItems = cart!.items.reduce((sum: number, item: CartItem) => sum + item.quantity, 0);
       cart!.totalPrice = cart!.items.reduce((sum: number, item: CartItem) => sum + (item.price * item.quantity), 0);
       cart!.updatedAt = new Date();

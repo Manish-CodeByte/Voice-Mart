@@ -22,7 +22,6 @@ export const createReview = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    // Get user info from Clerk API
     let userName = 'Anonymous';
     let userEmail = '';
     

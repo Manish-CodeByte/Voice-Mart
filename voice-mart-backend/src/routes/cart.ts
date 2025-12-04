@@ -3,7 +3,6 @@ import { authMiddleware } from '../middleware/auth.js';
 import * as cartController from '../controllers/cartController.js';
 const router = Router();
 
-// All cart routes require authentication
 router.use(authMiddleware);
 
 router.get('/', cartController.getCart);

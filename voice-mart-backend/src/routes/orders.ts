@@ -3,7 +3,6 @@ import * as orderController from '../controllers/orderController.js';
 import { authMiddleware } from '../middleware/auth.js';
 const router = Router();
 
-// All order routes require authentication
 router.use(authMiddleware);
 
 router.post('/', orderController.createOrder);

@@ -3,7 +3,6 @@ import fs from 'fs';
 
 import logger from '../utils/logger.js';
 
-// Initialize Gemini AI
 const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey || '');
 
@@ -31,21 +30,20 @@ export interface VoiceCommandResult {
 }
 
 /**
- * Detect language from transcript
- * @param {string} transcript - The transcribed text
- * @returns {string} - Detected language
+ * @param {string} transcript 
+ * @returns {string} 
  */
 function detectLanguage(transcript: string): string {
     if (!transcript) return 'unknown';
 
     const text = transcript.toLowerCase();
 
-    // Kannada detection (contains Kannada script)
+    // Kannada detection 
     if (/[\u0C80-\u0CFF]/.test(text)) {
         return 'kannada';
     }
 
-    // Tulu detection (common Tulu words)
+    // Tulu detection
     const tuluWords = ['pole', 'malpe', 'madle', 'maide', 'onji', 'idd'];
     if (tuluWords.some(word => text.includes(word))) {
         return 'tulu';
@@ -60,8 +58,7 @@ function detectLanguage(transcript: string): string {
 }
 
 /**
- * Clean up uploaded audio file
- * @param {string} audioPath - Path to the audio file
+ * @param {string} audioPath 
  */
 export function cleanupAudioFile(audioPath: string): void {
     try {
@@ -132,14 +129,13 @@ User Input: "${text}"
 Return ONLY valid JSON.`;
 
         let responseText;
-        const maxRetries = 1; // Reduced from 3 to 1 for faster fallback
+        const maxRetries = 1; 
         let attempt = 0;
         
-        // Only use gemini-2.0-flash-exp with retry logic
         while (attempt < maxRetries) {
             try {
                 attempt++;
-                logger.info(`🔄 Attempt ${attempt}/${maxRetries} with gemini-2.0-flash-exp`);
+                logger.info(`Attempt ${attempt}/${maxRetries} with gemini-2.0-flash-exp`);
                 
                 const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
                 const result = await model.generateContent(prompt);
@@ -147,18 +143,16 @@ Return ONLY valid JSON.`;
                 responseText = response.text();
                 
                 logger.info('Success with gemini-2.0-flash-exp');
-                break; // Success! Exit loop
+                break; 
                 
             } catch (error: any) {
                 logger.warn(`Attempt ${attempt} failed: ${error.message}`);
-                
-                // Check if it's a rate limit error (429)
+             
                 if (error.message.includes('429') || error.message.includes('quota')) {
-                    // Extract retry delay from error message
+
                     const retryMatch = error.message.match(/retry in ([\d.]+)s/i);
                     let retryDelay = retryMatch ? parseFloat(retryMatch[1]) * 1000 : 2000 * attempt;
                     
-                    // Cap at 5 seconds max (don't wait 60+ seconds)
                     retryDelay = Math.min(retryDelay, 5000);
                     
                     if (attempt < maxRetries) {
@@ -169,7 +163,6 @@ Return ONLY valid JSON.`;
                         return fallbackToRegex(text);
                     }
                 } else {
-                    // Non-rate-limit error, fallback immediately
                     logger.error(`Non-recoverable error: ${error.message}`);
                     return fallbackToRegex(text);
                 }
@@ -178,7 +171,6 @@ Return ONLY valid JSON.`;
 
         logger.info(`Gemini response: ${responseText}`);
 
-        // Parse JSON response
         try {
             const cleanText = responseText
                 .replace(/```json\n?/g, '')
@@ -208,10 +200,6 @@ Return ONLY valid JSON.`;
     }
 }
 
-/**
- * Rule-Based Fallback for when AI fails
- * Uses Regex to match common intents in multiple languages
- */
 function fallbackToRegex(text: string): VoiceCommandResult {
     const lower = text.toLowerCase().trim();
     let action = 'unknown';
@@ -228,7 +216,7 @@ function fallbackToRegex(text: string): VoiceCommandResult {
         responseText = "ನನಗೆ ಅರ್ಥವಾಗಲಿಲ್ಲ.";
     }
 
-    // 1. Checkout (MUST BE FIRST - most specific)
+    // 1. Checkout
     if (lower.match(/\b(checkout|check out)\b/) || 
         lower.includes('चेकआउट') || lower.includes('ಚೆಕ್‌ಔಟ್')) {
         action = 'checkout';
@@ -237,7 +225,7 @@ function fallbackToRegex(text: string): VoiceCommandResult {
                        'Proceeding to checkout.';
     }
     
-    // 2. Navigation - Cart
+    // 2. Navigation
     else if (lower.match(/\b(open|go to|show|view)\b.*\bcart\b/) ||
              lower.includes('कार्ट') || lower.includes('ಕಾರ್ಟ್')) {
         action = 'navigate';
@@ -247,7 +235,7 @@ function fallbackToRegex(text: string): VoiceCommandResult {
                        'Opening your cart.';
     }
     
-    // 3. Navigation - Home
+    // 3. Navigation
     else if (lower.match(/\b(home|main page|homepage)\b/) ||
              lower.includes('होम') || lower.includes('ಮುಖಪುಟ')) {
         action = 'navigate';
@@ -257,7 +245,7 @@ function fallbackToRegex(text: string): VoiceCommandResult {
                        'Going to home page.';
     }
     
-    // 4. Navigation - Orders
+    // 4. Navigation 
     else if (lower.match(/\b(order|orders|my order)\b/) ||
              lower.includes('ऑर्डर') || lower.includes('ಆರ್ಡರ್')) {
         action = 'navigate';
@@ -267,7 +255,7 @@ function fallbackToRegex(text: string): VoiceCommandResult {
                        'Showing your orders.';
     }
     
-    // 5. Theme - Dark
+    // 5. Theme 
     else if (lower.match(/\b(dark mode|dark theme|enable dark|switch to dark)\b/) ||
              lower.includes('डार्क मोड') || lower.includes('ಡಾರ್ಕ್ ಮೋಡ್')) {
         action = 'set_theme';
@@ -277,7 +265,7 @@ function fallbackToRegex(text: string): VoiceCommandResult {
                        'Switching to dark mode.';
     }
     
-    // 6. Search (Default fallback)
+    // 6. Search 
     else if (lower.match(/\b(search|find|show|looking for|i want|get me)\b/) ||
              lower.includes('खोज') || lower.includes('ಹುಡುಕು') ||
              lower.includes('दिखाओ') || lower.includes('ತೋರಿಸು')) {
@@ -301,7 +289,7 @@ function fallbackToRegex(text: string): VoiceCommandResult {
                        `Searching for ${item}.`;
     }
 
-    logger.info(`🔄 Regex Fallback: action="${action}", item="${item}", lang="${detectedLang}"`);
+    logger.info(`Regex Fallback: action="${action}", item="${item}", lang="${detectedLang}"`);
 
     return {
         success: true,

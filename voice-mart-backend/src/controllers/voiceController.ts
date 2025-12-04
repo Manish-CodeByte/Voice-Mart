@@ -53,7 +53,6 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
     try {
         logger.info('Received voice command request');
 
-        // Check if file was uploaded
         if (!req.file) {
             res.status(400).json({
                 success: false,
@@ -66,7 +65,6 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
         logger.info(`File size: ${req.file.size} bytes`);
         logger.info(`MIME type: ${req.file.mimetype}`);
 
-        // Process the audio file with STT first
         const audioBuffer = fs.readFileSync(req.file.path);
         const audioBase64 = audioBuffer.toString('base64');
         
@@ -74,7 +72,6 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
         const languageCode = req.body.languageCode || 'en-IN';
         logger.info(`Processing voice command in language: ${languageCode}`);
         
-        // Get context from request (current page, product info)
         const context = req.body.context ? JSON.parse(req.body.context) : null;
         if (context) {
             logger.info(`Context received: ${JSON.stringify(context)}`);
@@ -112,17 +109,12 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
                 result.error = `TTS Error: ${ttsError.message}`;
             }
         }
-
-        // Clean up the uploaded file
         cleanupAudioFile(req.file.path);
-
-        // Return the result
         res.json(result);
 
     } catch (error: any) {
         logger.error('Error processing voice command:', error);
 
-        // Clean up file if it exists
         if (req.file) {
             cleanupAudioFile(req.file.path);
         }

@@ -3,12 +3,10 @@ import * as productController from '../controllers/productController.js';
 
 const router = Router();
 
-// Public routes
 router.get('/', productController.getProducts);
 router.get('/search/suggestions', productController.getSearchSuggestions);
 router.get('/:id', productController.getProduct);
 
-// Admin routes (add auth middleware later)
 router.post('/', productController.createProduct);
 router.put('/:id', productController.updateProduct);
 router.delete('/:id', productController.deleteProduct);

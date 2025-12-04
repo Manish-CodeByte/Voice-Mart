@@ -4,7 +4,6 @@ import { searchByImage } from '../controllers/imageSearchController.js';
 
 const router = express.Router();
 
-// Configure multer for image upload (memory storage)
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -19,7 +18,6 @@ const upload = multer({
     },
 });
 
-// POST /api/search/image - Search products by image
 router.post('/image', upload.single('image'), searchByImage);
 
 export default router;

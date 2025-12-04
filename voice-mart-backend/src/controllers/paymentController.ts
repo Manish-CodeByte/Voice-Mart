@@ -25,7 +25,7 @@ export const createOrder = async (req: Request, res: Response) => {
     }
 
     const options = {
-      amount: Math.round(amount * 100), // amount in smallest currency unit (paise)
+      amount: Math.round(amount * 100), 
       currency,
       receipt: `receipt_${Date.now()}`,
     };
@@ -88,7 +88,6 @@ export const handleWebhook = async (req: Request, res: Response) => {
     
     if (!secret) {
         console.warn("RAZORPAY_WEBHOOK_SECRET not set, skipping signature validation");
-        // In production, you MUST validate the signature
     } else {
         const shasum = crypto.createHmac('sha256', secret);
         shasum.update(JSON.stringify(req.body));
@@ -111,7 +110,6 @@ export const handleWebhook = async (req: Request, res: Response) => {
     } else if (event === 'payment.failed') {
       const payment = payload.payment.entity;
       console.log('Payment failed:', payment.id);
-      // Update order status to 'failed' in DB
     }
 
     res.status(200).json({ success: true });

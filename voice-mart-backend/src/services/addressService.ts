@@ -19,7 +19,7 @@ class AddressService {
       const now = new Date();
 
       const newAddress: Address = {
-        id: Date.now().toString(), // Simple ID generation
+        id: Date.now().toString(), 
         userId,
         ...dto,
         isDefault: dto.isDefault || false,
@@ -33,7 +33,6 @@ class AddressService {
         const data = doc.data() as UserAddresses;
         addresses = data.addresses || [];
 
-        // If setting as default, unset others
         if (newAddress.isDefault) {
           addresses = addresses.map(addr => ({ ...addr, isDefault: false }));
         }
@@ -66,7 +65,6 @@ class AddressService {
       const data = doc.data() as UserAddresses;
       const addresses = data.addresses || [];
 
-      // Sort: default first, then by creation date
       return addresses.sort((a, b) => {
         if (a.isDefault && !b.isDefault) return -1;
         if (!a.isDefault && b.isDefault) return 1;
@@ -104,7 +102,6 @@ class AddressService {
         throw new Error('Address not found');
       }
 
-      // If setting as default, unset others
       if (dto.isDefault) {
         addresses = addresses.map(addr => ({ ...addr, isDefault: false }));
       }

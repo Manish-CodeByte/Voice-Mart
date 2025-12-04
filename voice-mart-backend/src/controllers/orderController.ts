@@ -30,7 +30,7 @@ export const getOrders = async (req: AuthRequest, res: Response) => {
     }
 
     const orders = await orderService.getUserOrders(userId);
-    logger.info(`✅ DEBUG - Found ${orders.length} orders for userId: ${userId}`);
+    logger.info(` DEBUG - Found ${orders.length} orders for userId: ${userId}`);
     
     res.json({ success: true, data: orders });
   } catch (error) {
@@ -84,7 +84,6 @@ export const cancelOrder = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    // Ensure user can only cancel their own orders
     if (order.userId !== userId) {
       res.status(403).json({ success: false, message: 'Forbidden' });
       return;

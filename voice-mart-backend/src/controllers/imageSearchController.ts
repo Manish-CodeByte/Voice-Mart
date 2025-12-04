@@ -14,17 +14,12 @@ export const searchByImage = async (req: Request, res: Response) => {
 
         logger.info(`Image search request: ${req.file.originalname} (${req.file.size} bytes)`);
 
-        // Convert image to base64
         const imageBase64 = req.file.buffer.toString('base64');
 
-        // Analyze image with Google Vision API
         const { labels, text, webEntities } = await visionService.analyzeImage(imageBase64);
 
-        // Extract keywords for product search
         const keywords = visionService.extractProductKeywords(labels, text, webEntities);
         logger.info(`Extracted keywords: ${keywords.join(', ')}`);
-
-        // Search for products using productService
         const allProducts = await productService.getAllProducts({});
         const products = searchProducts(allProducts, keywords);
 
@@ -50,27 +45,22 @@ export const searchByImage = async (req: Request, res: Response) => {
     }
 };
 
-/**
- * Search products based on extracted keywords
- */
 function searchProducts(products: any[], keywords: string[]): any[] {
     try {
-        // Score and filter products by relevance
         const scoredProducts = products.map(product => {
             let score = 0;
             const productText = `${product.name} ${product.description} ${product.category} ${product.tags?.join(' ')}`.toLowerCase();
 
             keywords.forEach(keyword => {
                 if (productText.includes(keyword.toLowerCase())) {
-                    // Higher score for matches in name
+
                     if (product.name.toLowerCase().includes(keyword.toLowerCase())) {
                         score += 3;
                     }
-                    // Medium score for category
+
                     if (product.category?.toLowerCase().includes(keyword.toLowerCase())) {
                         score += 2;
                     }
-                    // Lower score for description/tags
                     if (product.description?.toLowerCase().includes(keyword.toLowerCase()) || 
                         product.tags?.some((tag: string) => tag.toLowerCase().includes(keyword.toLowerCase()))) {
                         score += 1;
@@ -80,8 +70,6 @@ function searchProducts(products: any[], keywords: string[]): any[] {
 
             return { product, score };
         });
-
-        // Sort by score (highest first) and return top 20 products
         return scoredProducts
             .filter(item => item.score > 0)
             .sort((a, b) => b.score - a.score)

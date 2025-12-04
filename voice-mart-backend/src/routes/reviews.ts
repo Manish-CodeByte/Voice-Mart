@@ -11,10 +11,8 @@ import {
 
 const router = express.Router();
 
-// Public routes
 router.get('/product/:productId', getProductReviews);
 
-// Protected routes
 router.post('/', requireAuth, createReview);
 router.get('/my-reviews', requireAuth, getUserReviews);
 router.put('/:id', requireAuth, updateReview);

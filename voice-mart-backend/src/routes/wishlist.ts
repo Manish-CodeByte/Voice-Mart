@@ -4,7 +4,6 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
-// All wishlist routes require authentication
 router.use(authMiddleware);
 
 router.get('/', wishlistController.getWishlist);

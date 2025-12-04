@@ -4,7 +4,6 @@ import * as addressController from '../controllers/addressController.js';
 
 const router = Router();
 
-// All routes require authentication
 router.use(requireAuthMiddleware);
 
 router.get('/', addressController.getAddresses);
