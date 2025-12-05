@@ -182,38 +182,35 @@ export class OllamaService {
 Input: "show me phones under 5000"
 Output: {"action":"search","item":"phones","entities":{"product":"phones","maxPrice":5000},"responseText":"Searching for phones under ₹5000","language":"en-IN","confidence":0.95}
 
+Input: "go to shop"
+Output: {"action":"navigate","item":"shop","entities":{},"responseText":"Navigating to shop","language":"en-IN","confidence":0.99}
+
+Input: "go to my orders"
+Output: {"action":"navigate","item":"orders","entities":{},"responseText":"Opening your orders","language":"en-IN","confidence":0.99}
+
+Input: "go to home"
+Output: {"action":"navigate","item":"home","entities":{},"responseText":"Going to home page","language":"en-IN","confidence":0.99}
+
+Input: "switch to light mode"
+Output: {"action":"set_theme","item":"light","entities":{},"responseText":"Switching to light mode","language":"en-IN","confidence":0.99}
+
+Input: "enable dark mode"
+Output: {"action":"set_theme","item":"dark","entities":{},"responseText":"Switching to dark mode","language":"en-IN","confidence":0.99}
+
 Input: "add current_product to cart" (with context: {productName: "iPhone 15"})
 Output: {"action":"add_to_cart","item":"iPhone 15","entities":{"product":"iPhone 15"},"responseText":"Adding iPhone 15 to cart","language":"en-IN","confidence":0.98}
 
-Input: "कार्ट खोलो"
-Output: {"action":"navigate","item":"cart","entities":{},"responseText":"कार्ट खोल रहे हैं","language":"hi-IN","confidence":1.0}
+Input: "cart kholo"
+Output: {"action":"navigate","item":"cart","entities":{},"responseText":"Opening cart","language":"hi-IN","confidence":1.0}
 
 Input: "switch to kannada"
 Output: {"action":"change_language","item":"kn","entities":{},"responseText":"Switching to Kannada","language":"en-IN","confidence":0.95}
 
-Input: "ಕನ್ನಡಕ್ಕೆ ಬದಲಿಸಿ"
-Output: {"action":"change_language","item":"kn","entities":{},"responseText":"ಕನ್ನಡಕ್ಕೆ ಬದಲಾಯಿಸಲಾಗುತ್ತಿದೆ","language":"kn-IN","confidence":0.95}
-
 Input: "pay with cash on delivery"
 Output: {"action":"select_payment","item":"cod","entities":{},"responseText":"Selected Cash on Delivery","language":"en-IN","confidence":0.98}
 
-Input: "use card payment"
-Output: {"action":"select_payment","item":"card","entities":{},"responseText":"Selected Card Payment","language":"en-IN","confidence":0.98}
-
-Input: "cancel this order"
-Output: {"action":"cancel_order","item":"latest_order","entities":{},"responseText":"Cancelling order","language":"en-IN","confidence":0.95}
-
 Input: "cancel latest order"
 Output: {"action":"cancel_order","item":"latest_order","entities":{},"responseText":"Cancelling latest order","language":"en-IN","confidence":0.98}
-
-Input: "cancel order 1"
-Output: {"action":"cancel_order","item":"1","entities":{"orderNumber":"1"},"responseText":"Cancelling order 1","language":"en-IN","confidence":0.98}
-
-Input: "cancel order 3"
-Output: {"action":"cancel_order","item":"3","entities":{"orderNumber":"3"},"responseText":"Cancelling order 3","language":"en-IN","confidence":0.98}
-
-Input: "cancel acer predator"
-Output: {"action":"cancel_order","item":"acer predator","entities":{"product":"acer predator"},"responseText":"Cancelling order with Acer Predator","language":"en-IN","confidence":0.95}
 
 **NOW PROCESS THE USER INPUT AND RESPOND WITH JSON ONLY:**`;
 
