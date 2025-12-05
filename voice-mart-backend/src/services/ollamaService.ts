@@ -200,7 +200,11 @@ export class OllamaService {
 **YOUR TASK:**
 1. Understand the user's intent with fuzzy matching (ignore small spelling errors)
 2. Extract key information (product name, price range, quantity)
-3. Generate a natural response in the SAME language as the input
+3. **CRITICAL:** If the user speaks in a non-English language (Hindi, Kannada, etc.):
+   - Translate the item field to ENGLISH (e.g., "phone" not "ಫೋನ್")
+   - Translate entities.product to ENGLISH
+   - Keep responseText in the USER'S language
+4. Generate a natural response in the SAME language as the input
 
 **SPECIAL HANDLING:**
 - If input contains "current_product" and context exists, use context.productName
@@ -225,9 +229,9 @@ export class OllamaService {
 **OUTPUT FORMAT (JSON ONLY):**
 {
   "action": "one_of_valid_actions",
-  "item": "product_name_or_page",
+  "item": "product_name_or_page (ALWAYS IN ENGLISH)",
   "entities": {
-    "product": "extracted product name",
+    "product": "extracted product name (ALWAYS IN ENGLISH)",
     "minPrice": number or null,
     "maxPrice": number or null,
     "quantity": number or null
@@ -241,29 +245,32 @@ export class OllamaService {
 Input: "show me phones under 5000"
 Output: {"action":"search","item":"phones","entities":{"product":"phones","maxPrice":5000},"responseText":"Searching for phones under ₹5000","language":"en-IN","confidence":0.95}
 
+Input: "ಫೋನ್ ತೋರಿಸಿ" (Show phone)
+Output: {"action":"search","item":"phone","entities":{"product":"phone"},"responseText":"ಫೋನ್ಗಳನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ","language":"kn-IN","confidence":0.95}
+
 Input: "go to shop"
 Output: {"action":"navigate","item":"shop","entities":{},"responseText":"Navigating to shop","language":"en-IN","confidence":0.99}
 
-Input: "go to my orders"
-Output: {"action":"navigate","item":"orders","entities":{},"responseText":"Opening your orders","language":"en-IN","confidence":0.99}
+Input: "cart ge hogi" (Go to cart)
+Output: {"action":"navigate","item":"cart","entities":{},"responseText":"ಕಾರ್ಟ್ಗೆ ಹೋಗಲಾಗುತ್ತಿದೆ","language":"kn-IN","confidence":0.99}
 
-Input: "go to home"
-Output: {"action":"navigate","item":"home","entities":{},"responseText":"Going to home page","language":"en-IN","confidence":0.99}
+Input: "orders ge hogi" (Go to orders)
+Output: {"action":"navigate","item":"orders","entities":{},"responseText":"ನಿಮ್ಮ ಆರ್ಡರ್ಗಳನ್ನು ತೆರೆಯಲಾಗುತ್ತಿದೆ","language":"kn-IN","confidence":0.99}
 
 Input: "switch to light mode"
 Output: {"action":"set_theme","item":"light","entities":{},"responseText":"Switching to light mode","language":"en-IN","confidence":0.99}
 
-Input: "enable dark mode"
-Output: {"action":"set_theme","item":"dark","entities":{},"responseText":"Switching to dark mode","language":"en-IN","confidence":0.99}
+Input: "kannada kke badalisi" (Change to Kannada)
+Output: {"action":"change_language","item":"kn","entities":{},"responseText":"ಕನ್ನಡಕ್ಕೆ ಬದಲಾಯಿಸಲಾಗುತ್ತಿದೆ","language":"kn-IN","confidence":0.99}
+
+Input: "change language to english" (spoken in any language)
+Output: {"action":"change_language","item":"en","entities":{},"responseText":"Switching to English","language":"en-IN","confidence":0.99}
 
 Input: "add current_product to cart" (with context: {productName: "iPhone 15"})
 Output: {"action":"add_to_cart","item":"iPhone 15","entities":{"product":"iPhone 15"},"responseText":"Adding iPhone 15 to cart","language":"en-IN","confidence":0.98}
 
 Input: "cart kholo"
 Output: {"action":"navigate","item":"cart","entities":{},"responseText":"Opening cart","language":"hi-IN","confidence":1.0}
-
-Input: "switch to kannada"
-Output: {"action":"change_language","item":"kn","entities":{},"responseText":"Switching to Kannada","language":"en-IN","confidence":0.95}
 
 Input: "pay with cash on delivery"
 Output: {"action":"select_payment","item":"cod","entities":{},"responseText":"Selected Cash on Delivery","language":"en-IN","confidence":0.98}

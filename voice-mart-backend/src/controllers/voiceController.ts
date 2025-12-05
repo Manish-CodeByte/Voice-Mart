@@ -92,6 +92,15 @@ export const processVoiceCommand = async (req: Request, res: Response, next: Nex
         // Pass the language code as a hint to Ollama
         const result = await processTextCommand(sttResult.text, languageCode);
 
+        // Resolve "current_product" to actual productId if context is available
+        if (result.item === 'current_product' && context?.productId) {
+            result.item = context.productId;
+            logger.info(`Resolved 'current_product' to '${context.productId}'`);
+        } else if (result.item === 'current_product' && !context?.productId) {
+            logger.warn("Command referred to 'current_product' but no product context found.");
+            // Optionally, we could change the response text here to inform the user
+        }
+
 
         // Generate audio response if text response exists
         if (result.success && result.responseText) {
