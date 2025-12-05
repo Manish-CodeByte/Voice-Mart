@@ -45,13 +45,45 @@ class ProductService {
         updatedAt: doc.data().updatedAt?.toDate(),
       } as Product));
 
-      // Apply search filter (client-side since Firestore doesn't support full-text search)
+      // Apply search filter with relevance scoring
       if (query.search) {
-        const searchLower = query.search.toLowerCase();
-        products = products.filter(p => 
-          p.name.toLowerCase().includes(searchLower) ||
-          p.description.toLowerCase().includes(searchLower)
-        );
+        const searchLower = query.search.toLowerCase().trim();
+        const searchTokens = searchLower.split(/\s+/);
+
+        products = products.map(p => {
+          let score = 0;
+          const nameLower = p.name.toLowerCase();
+          const categoryLower = (p.category || '').toLowerCase();
+          const descLower = (p.description || '').toLowerCase();
+          const tagsLower = (p.tags || []).map(t => t.toLowerCase());
+
+          // Exact match on category (High relevance)
+          if (categoryLower === searchLower || categoryLower.includes(searchLower)) {
+            score += 20;
+          }
+
+          searchTokens.forEach(token => {
+            // Name match (Highest priority)
+            if (nameLower.includes(token)) score += 10;
+            
+            // Category match
+            if (categoryLower.includes(token)) score += 5;
+            
+            // Tags match
+            if (tagsLower.some(t => t.includes(token))) score += 5;
+            
+            // Description match (Lowest priority)
+            if (descLower.includes(token)) score += 1;
+          });
+
+          return { ...p, _score: score };
+        })
+        .filter((p: any) => p._score >= 5) // Minimum score threshold to filter out weak matches
+        .sort((a: any, b: any) => {
+          // If explicit sort is requested, respect it, otherwise sort by relevance
+          if (query.sortBy && query.sortBy !== 'createdAt') return 0;
+          return b._score - a._score;
+        });
       }
 
       logger.info(`Retrieved ${products.length} products`);
