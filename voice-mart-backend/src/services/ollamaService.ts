@@ -114,6 +114,64 @@ export class OllamaService {
     }
 
     /**
+     * Call Hugging Face Inference API
+     */
+    private async callHuggingFace(prompt: string): Promise<any> {
+        const apiKey = process.env.HUGGINGFACE_API_KEY;
+        if (!apiKey) {
+            throw new Error('HUGGINGFACE_API_KEY not found');
+        }
+
+        const model = process.env.HUGGINGFACE_MODEL || 'mistralai/Mistral-7B-Instruct-v0.3';
+        const url = `https://api-inference.huggingface.co/models/${model}`;
+
+        logger.info(`Calling Hugging Face API: ${model}`);
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                inputs: prompt,
+                parameters: {
+                    return_full_text: false,
+                    max_new_tokens: 500,
+                    temperature: 0.1,
+                },
+            }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Hugging Face API error: ${response.status} ${errorText}`);
+        }
+
+        const result = await response.json();
+        // Hugging Face returns an array of objects with 'generated_text'
+        let content = '';
+        if (Array.isArray(result) && result.length > 0) {
+            content = result[0].generated_text;
+        } else if (typeof result === 'object' && result.generated_text) {
+            content = result.generated_text;
+        } else {
+            logger.warn('Unexpected Hugging Face response format:', result);
+            content = JSON.stringify(result);
+        }
+
+        // Clean up response (sometimes includes the prompt or extra text)
+        content = content.trim();
+        // Extract JSON if wrapped in code blocks
+        const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || content.match(/```\s*([\s\S]*?)\s*```/);
+        if (jsonMatch) {
+            content = jsonMatch[1];
+        }
+
+        return { message: { content } };
+    }
+
+    /**
      * Process text command using local Ollama model with advanced NLP
      */
     async processTextCommand(text: string, languageHint?: string): Promise<VoiceCommandResult> {
@@ -124,7 +182,8 @@ export class OllamaService {
             // Phase 3: Entity extraction
             const entities = extractEntities(preprocessed);
             
-            logger.info(`Ollama Processing: "${text}" (Model: ${this.model}, Hint: ${languageHint})`);
+            const provider = process.env.LLM_PROVIDER || 'ollama';
+            logger.info(`Processing: "${text}" (Provider: ${provider}, Model: ${this.model}, Hint: ${languageHint})`);
             logger.info(`Entities extracted: ${JSON.stringify(entities)}`);
 
             // Phase 2: Enhanced prompt with entity extraction and fuzzy matching
@@ -214,19 +273,47 @@ Output: {"action":"cancel_order","item":"latest_order","entities":{},"responseTe
 
 **NOW PROCESS THE USER INPUT AND RESPOND WITH JSON ONLY:**`;
 
-            const response = await ollama.chat({
-                model: this.model,
-                messages: [{ role: 'user', content: prompt }],
-                format: 'json',
-                stream: false,
-            });
+            let response;
+            
+            if (provider === 'huggingface') {
+                response = await this.callHuggingFace(prompt);
+            } else {
+                try {
+                    // Default to Ollama
+                    response = await ollama.chat({
+                        model: this.model,
+                        messages: [{ role: 'user', content: prompt }],
+                        format: 'json',
+                        stream: false,
+                    });
+                } catch (ollamaError: any) {
+                    // If Ollama fails (e.g., CUDA error) and we have HF key, try fallback
+                    if (process.env.HUGGINGFACE_API_KEY) {
+                        logger.warn(`Ollama failed (${ollamaError.message}), falling back to Hugging Face...`);
+                        response = await this.callHuggingFace(prompt);
+                    } else {
+                        throw ollamaError;
+                    }
+                }
+            }
 
             const content = response.message.content;
-            logger.info(`Ollama Response: ${content}`);
+            logger.info(`LLM Response: ${content}`);
 
-            const parsed = JSON.parse(content);
+            let parsed;
+            try {
+                parsed = JSON.parse(content);
+            } catch (e) {
+                // Try to extract JSON if it's mixed with text
+                const jsonMatch = content.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    parsed = JSON.parse(jsonMatch[0]);
+                } else {
+                    throw new Error('Failed to parse JSON response');
+                }
+            }
 
-            // Merge extracted entities with Ollama's entities
+            // Merge extracted entities with LLM's entities
             const mergedEntities = {
                 ...entities,
                 ...parsed.entities,
@@ -251,9 +338,9 @@ Output: {"action":"cancel_order","item":"latest_order","entities":{},"responseTe
             };
 
         } catch (error: any) {
-            logger.error('Ollama Error:', error);
+            logger.error('LLM Error:', error);
             
-            if (error.message.includes('not found')) {
+            if (error.message.includes('not found') && !process.env.LLM_PROVIDER) {
                 logger.warn(`Model '${this.model}' not found. Please run: ollama pull ${this.model}`);
             }
             
@@ -262,7 +349,7 @@ Output: {"action":"cancel_order","item":"latest_order","entities":{},"responseTe
                 transcript: text,
                 action: 'unknown',
                 item: '',
-                error: `Ollama Error: ${error.message}`,
+                error: `LLM Error: ${error.message}`,
                 timestamp: new Date().toISOString()
             };
         }
