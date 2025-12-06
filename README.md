@@ -424,4 +424,4 @@ For issues and questions, please open an issue on GitHub.
 
 ---
 
-**Built with ❤️ using Next.js, Express, and AI 
+**Built with ❤️ using Next.js, Express, and AI By MANISH S
