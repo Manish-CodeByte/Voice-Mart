@@ -424,5 +424,5 @@ For issues and questions, please open an issue on GitHub.
 
 ---
 
-**Built with ❤️ using Next.js, Express, and AI By MANISH S , K.Thejasiw Nayak , Bhoomika Upadhyaya , Arpitha Poojary 
+**Built with ❤️ using Next.js, Express, and AI By Manish S , K.Thejaswi Nayak , Bhoomika Upadhyaya , Arpitha Poojary 
 
